@@ -1,11 +1,14 @@
 import agent
 from forta_agent import FindingSeverity, FindingType, create_transaction_event
 from web3_mock import Web3Mock, NEW_EOA, OLD_EOA
+from rules_mock import AddressPoisoningRulesMock
 
 w3 = Web3Mock()
+heuristic = AddressPoisoningRulesMock()
 
 
 class TestAddressPoisoningAgent:
+
     def test_transfer_to_eoa(self):
         agent.initialize()
 

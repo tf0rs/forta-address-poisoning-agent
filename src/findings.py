@@ -1,5 +1,4 @@
 from forta_agent import Finding, FindingSeverity, FindingType, EntityType
-from src.utils import get_length_of_logs
 
     
 class AddressPoisoningFinding:    
