@@ -38,12 +38,12 @@ class AddressPoisoningRules:
         return len(logs)
 
 
-    def are_all_logs_stablecoins(self, w3, transaction_hash):
+    def are_all_logs_stablecoins(self, w3, transaction_hash, chain_id):
         logs = w3.eth.get_transaction_receipt(transaction_hash)['logs']
         stablecoin_count = 0
 
         for log in logs:
-            if log['address'] in STABLECOIN_CONTRACTS:
+            if str.lower(log['address']) in STABLECOIN_CONTRACTS[chain_id]:
                 stablecoin_count += 1
 
         return (1.0 * stablecoin_count) / len(logs)

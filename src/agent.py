@@ -48,6 +48,7 @@ def detect_address_poisoning(w3, transaction_event):
     global PHISHING_ADDRESSES
 
     findings = []
+    chain_id = w3.eth.chain_id
 
     if (heuristic.have_addresses_been_detected(transaction_event, PHISHING_ADDRESSES) 
     and heuristic.is_contract(w3, transaction_event.to)):
@@ -64,7 +65,7 @@ def detect_address_poisoning(w3, transaction_event):
         DENOMINATOR_COUNT += 1
         log_length = heuristic.get_length_of_logs(w3, transaction_event.hash)
         if (log_length >= 5 # The lowest example observed is 9 as of Feb 2023
-        and heuristic.are_all_logs_stablecoins(w3, transaction_event.hash) >= 0.9 # Most examples are solely stablecoins
+        and heuristic.are_all_logs_stablecoins(w3, transaction_event.hash, chain_id) >= 0.8 # Most examples are solely stablecoins
         and heuristic.are_all_logs_transfers(w3, transaction_event.hash) # A proxy for transferFrom calls
         and heuristic.is_zero_value_tx(w3, transaction_event.hash)): # All logs should be transfer events for zero tokens
             logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")

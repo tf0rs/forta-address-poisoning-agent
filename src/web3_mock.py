@@ -6,8 +6,47 @@ OLD_EOA = '0x4e5b2E1Dc63f6B91cb6cD759936495434c7E0000'
 VERIFIED_CONTRACT = '0x2320A28f52334d62622cc2EaFa15DE55F9987eD0'
 
 MOCK_TX_HASH_LOGS_MAPPING = {
-    "0xpositive": {'logs': [{},{}]},
-    "0xnegative": {'logs':[{}]}
+    "0xpositive": {'logs': [
+            {
+                'address': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                'data': '0x0000000000000000000000000000000000000000000000000000000000000000',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                'data': '0x0000000000000000000000000000000000000000000000000000000000000000',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                'data': '0x0000000000000000000000000000000000000000000000000000000000000000',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                'data': '0x0000000000000000000000000000000000000000000000000000000000000000',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                'data': '0x0000000000000000000000000000000000000000000000000000000000000000',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+        ]
+    },
+    "0xnegative": {'logs':[
+            {
+                'address': NEW_EOA,
+                'data': '0x0000000000000000000000000000000000000000000000000000000000100000',
+                'topics':[HexBytes("0x0000000000000000000000003e02bc40db6c236d12f07a2e78db4e08f9aa4561")]
+            },
+            {
+                'address': NEW_EOA,
+                'data': '0x0000000000000000000000000000000000000000000000000000000000100000',
+                'topics':[HexBytes("0x0000000000000000000000003e02bc40db6c236d12f07a2e78db4e08f9aa4561")]
+            }
+        ]
+    }
 }
 
 
@@ -33,13 +72,8 @@ class EthMock:
         return HexBytes('0x')
 
     def get_transaction_receipt(self, transaction_hash):
-        transaction_receipt = TransactionMock(MOCK_TX_HASH_LOGS_MAPPING[transaction_hash])
+        transaction_receipt = MOCK_TX_HASH_LOGS_MAPPING[transaction_hash]
         return transaction_receipt
-
-
-class TransactionMock:
-    def __init__(self, data):
-        self.input = data
 
 
 class ContractMock:
