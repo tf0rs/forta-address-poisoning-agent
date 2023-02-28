@@ -1,6 +1,5 @@
 from hexbytes import HexBytes
 from forta_agent import Web3
-from src.agent import *
 from src.constants import STABLECOIN_CONTRACTS
 
 
