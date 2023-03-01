@@ -38,7 +38,7 @@ def initialize():
     PHISHING_ADDRESSES = set()
 
 
-def detect_address_poisoning(w3, transaction_event):
+def detect_address_poisoning(w3, heuristic, transaction_event):
     """
     PLACEHOLDER - INSERT HEURISTIC DESCRIPTION
     :return: detect_address_poisoning: list(Finding)
@@ -74,18 +74,18 @@ def detect_address_poisoning(w3, transaction_event):
             score = (1.0 * ALERT_COUNT) / DENOMINATOR_COUNT
             findings.append(AddressPoisoningFinding.create_finding(w3, transaction_event, score, log_length))
     logging.info(f"Global counts: {ALERT_COUNT, DENOMINATOR_COUNT}")
-    logging.info(f"Phishing addresses -> {list(PHISHING_ADDRESSES)}")
+    logging.info(f"Phishing addresses -> {list(PHISHING_ADDRESSES)}") # Remove this before publishing...
     return findings
 
 
-def provide_handle_transaction(w3):
+def provide_handle_transaction(w3, heuristic):
     def handle_transaction(transaction_event):
-        return detect_address_poisoning(w3, transaction_event)
+        return detect_address_poisoning(w3, heuristic, transaction_event)
 
     return handle_transaction
 
 
-real_handle_transaction = provide_handle_transaction(web3)
+real_handle_transaction = provide_handle_transaction(web3, heuristic)
 
 
 def handle_transaction(transaction_event):
