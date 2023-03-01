@@ -1,5 +1,4 @@
 from forta_agent import get_json_rpc_url, Web3
-from src.constants import STABLECOIN_CONTRACTS, STABLECOIN_TICKERS
 from src.findings import AddressPoisoningFinding
 from src.rules import AddressPoisoningRules
 import logging

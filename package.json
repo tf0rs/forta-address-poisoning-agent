@@ -4,7 +4,7 @@
   "description": "Agent detecting address poisoning, or zero value phishing transfers",
   "repository": "https://github.com/tf0rs/forta-address-poisoning-agent",
   "chainIds": [
-    1, 56, 137, 42161, 10, 43114
+    1, 56, 137
   ],
   "scripts": {
     "postinstall": "python3 -m pip install -r requirements_dev.txt",
