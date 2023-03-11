@@ -7,15 +7,16 @@ This agent detects address poisoning, phishing transactions.
 ## Supported Chains
 
 - Ethereum
-- PLACEHOLDER
+- Binance Smart Chain
+- Polygon
 
 ## Alerts
 
 - ADDRESS-POISONING
   - Fired when a transaction consists of more than 5 zero-value transferFrom calls, primarily for stablecoins
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Severity is always set to "medium"
+  - Type is always set to "suspicious"
+  - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and addresses involved
 
 ## Test Data
 
