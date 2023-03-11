@@ -30,15 +30,11 @@ class AddressPoisoningRules:
 
 
     @staticmethod
-    def get_length_of_logs(w3, transaction_hash):
-        logs = w3.eth.get_transaction_receipt(transaction_hash)['logs']
-        return len(logs)
-
-
-    @staticmethod
-    def are_all_logs_stablecoins(w3, transaction_hash, chain_id):
-        logs = w3.eth.get_transaction_receipt(transaction_hash)['logs']
+    def are_all_logs_stablecoins(logs, chain_id):
         stablecoin_count = 0
+
+        if len(logs) is 0:
+            return 0
 
         for log in logs:
             if str.lower(log['address']) in STABLECOIN_CONTRACTS[chain_id]:
@@ -48,12 +44,15 @@ class AddressPoisoningRules:
 
 
     @staticmethod    
-    def are_all_logs_transfers(w3, transaction_hash):
-        logs = w3.eth.get_transaction_receipt(transaction_hash)['logs']
-        transfer_hash = HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
-
+    def are_all_logs_transfers_or_approvals(logs):
+        accepted_hashes = [
+            HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
+            HexBytes("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925")
+        ]
+        
         for log in logs:
-            if log['topics'][0] != transfer_hash:
+            if log['topics'][0] not in accepted_hashes:
+                print(log['topics'][0])
                 return False
             else:
                 continue
@@ -61,8 +60,7 @@ class AddressPoisoningRules:
 
     
     @staticmethod
-    def is_zero_value_tx(w3, transaction_hash):
-        logs = w3.eth.get_transaction_receipt(transaction_hash)['logs']
+    def is_zero_value_tx(logs):
 
         for log in logs:
             if log['data'] != "0x0000000000000000000000000000000000000000000000000000000000000000":

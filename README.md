@@ -12,7 +12,7 @@ This agent detects address poisoning, phishing transactions.
 ## Alerts
 
 - ADDRESS-POISONING
-  - Fired when a transaction consists of more than 10 zero-value transferFrom calls, primarily for stablecoins
+  - Fired when a transaction consists of more than 5 zero-value transferFrom calls, primarily for stablecoins
   - Severity is always set to "low" (mention any conditions where it could be something else)
   - Type is always set to "info" (mention any conditions where it could be something else)
   - Mention any other type of metadata fields included with this alert
