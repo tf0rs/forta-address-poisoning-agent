@@ -21,7 +21,7 @@ root.addHandler(handler)
 # Anomaly score variables
 DENOMINATOR_COUNT = 0
 ALERT_COUNT = 0
-PHISHING_ADDRESSES = set()
+PHISHING_CONTRACTS = set()
 
 
 def initialize():
@@ -34,8 +34,8 @@ def initialize():
     global ALERT_COUNT
     ALERT_COUNT = 0
 
-    global PHISHING_ADDRESSES
-    PHISHING_ADDRESSES = set()
+    global PHISHING_CONTRACTS
+    PHISHING_CONTRACTS = set()
 
 
 def detect_address_poisoning(w3, heuristic, transaction_event):
@@ -45,13 +45,13 @@ def detect_address_poisoning(w3, heuristic, transaction_event):
     """
     global DENOMINATOR_COUNT
     global ALERT_COUNT
-    global PHISHING_ADDRESSES
+    global PHISHING_CONTRACTS
 
     findings = []
     chain_id = w3.eth.chain_id
     logs = w3.eth.get_transaction_receipt(transaction_event.hash)['logs']
 
-    if (heuristic.have_addresses_been_detected(transaction_event, PHISHING_ADDRESSES) 
+    if (heuristic.have_addresses_been_detected(transaction_event, PHISHING_CONTRACTS) 
     and heuristic.is_contract(w3, transaction_event.to)):
         logging.info(f"Tx is from previously detected addresses...")
         DENOMINATOR_COUNT += 1
@@ -65,13 +65,13 @@ def detect_address_poisoning(w3, heuristic, transaction_event):
         if chain_id == 137:
             logs = logs[:-1]
         log_length = len(logs)
-        if (log_length >= 5 # The lowest example observed is 9 as of Feb 2023
+        if (log_length >= 3 # The lowest example observed is 9 as of Feb 2023
         and heuristic.are_all_logs_stablecoins(logs, chain_id) >= 0.8 # Most examples are solely stablecoins
         and heuristic.are_all_logs_transfers_or_approvals(logs) # A proxy for transferFrom calls
         and heuristic.is_zero_value_tx(logs)): # All logs should be transfer events for zero tokens
             logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")
             ALERT_COUNT += 1
-            PHISHING_ADDRESSES.update([transaction_event.from_, transaction_event.to])
+            PHISHING_CONTRACTS.update([transaction_event.to])
             score = (1.0 * ALERT_COUNT) / DENOMINATOR_COUNT
             findings.append(AddressPoisoningFinding.create_finding(w3, transaction_event, score, log_length))
     return findings

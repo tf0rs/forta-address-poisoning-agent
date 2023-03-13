@@ -23,7 +23,7 @@ class AddressPoisoningRules:
         check if sender and receiver have previously been identified as phishing addresses
         :return: have_addresses_been_detected: bool
         """
-        if transaction_event.from_ in phishing_addresses and transaction_event.to in phishing_addresses:
+        if transaction_event.to in phishing_addresses:
             return True
         else:
             return False
@@ -33,7 +33,7 @@ class AddressPoisoningRules:
     def are_all_logs_stablecoins(logs, chain_id):
         stablecoin_count = 0
 
-        if len(logs) is 0:
+        if len(logs) == 0:
             return 0
 
         for log in logs:
