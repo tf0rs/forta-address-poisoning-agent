@@ -74,6 +74,8 @@ def detect_address_poisoning(w3, heuristic, transaction_event):
             PHISHING_CONTRACTS.update([transaction_event.to])
             score = (1.0 * ALERT_COUNT) / DENOMINATOR_COUNT
             findings.append(AddressPoisoningFinding.create_finding(w3, transaction_event, score, log_length))
+    logging.info(list(PHISHING_CONTRACTS))
+    logging.info(f"Alert count: {ALERT_COUNT}")
     return findings
 
 
