@@ -52,7 +52,6 @@ class AddressPoisoningRules:
         
         for log in logs:
             if log['topics'][0] not in accepted_hashes:
-                print(log['topics'][0])
                 return False
             else:
                 continue

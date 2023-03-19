@@ -1,7 +1,7 @@
 from forta_agent import get_json_rpc_url, Web3
 from src.findings import AddressPoisoningFinding
 from src.rules import AddressPoisoningRules
-from src.constants import STANDARD_HEURISTIC_CHAIN_IDS
+from src.constants import TRANSFER_EVENT_ABI, STABLECOIN_CONTRACTS
 import logging
 import sys
 
@@ -38,6 +38,37 @@ def initialize():
     PHISHING_CONTRACTS = set()
 
 
+def parse_logs_for_transfer_info(transaction_event, chain_id):
+    transfer_logs = []
+    for contract in STABLECOIN_CONTRACTS[chain_id]:
+        try:
+            token_transfer_logs = transaction_event.filter_log(TRANSFER_EVENT_ABI, contract)
+            if len(token_transfer_logs) > 0:
+                for log in token_transfer_logs:
+                    transfer_logs.append(log)
+        except Exception as e:
+            logging.warning(f"Failed to decode logs: {e}")
+    transfer_log_args = []
+    for log in transfer_logs:
+        transfer_log_args.append(log['args'])
+    return transfer_log_args
+
+
+def get_attacker_victim_lists(w3, decoded_logs):
+    attackers = []
+    victims = []
+    for log in decoded_logs:
+        from_tx_count = w3.eth.get_transaction_count(log['from'])
+        to_tx_count = w3.eth.get_transaction_count(log['to'])
+        if from_tx_count > to_tx_count:
+            attackers.append(log['to'])
+            victims.append(log['from'])
+        else:
+            attackers.append(log['from'])
+            victims.append(log['to'])
+    return attackers, victims
+
+
 def detect_address_poisoning(w3, heuristic, transaction_event):
     """
     PLACEHOLDER - INSERT HEURISTIC DESCRIPTION
@@ -58,24 +89,30 @@ def detect_address_poisoning(w3, heuristic, transaction_event):
         ALERT_COUNT += 1
         score = (1.0 * ALERT_COUNT) / DENOMINATOR_COUNT
         log_length = len(logs)
-        findings.append(AddressPoisoningFinding.create_finding(w3, transaction_event, score, log_length))
+        decoded_logs = parse_logs_for_transfer_info(transaction_event, chain_id)
+        attackers, victims = get_attacker_victim_lists(w3, decoded_logs)
+        findings.append(AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims))
         return findings
+
     elif heuristic.is_contract(w3, transaction_event.to):
         DENOMINATOR_COUNT += 1
         if chain_id == 137:
             logs = logs[:-1]
         log_length = len(logs)
         if (log_length >= 3 # The lowest example observed is 9 as of Feb 2023
-        and heuristic.are_all_logs_stablecoins(logs, chain_id) >= 0.8 # Most examples are solely stablecoins
+        and heuristic.are_all_logs_stablecoins(logs, chain_id) >= 0.6 # Most examples are solely stablecoins
         and heuristic.are_all_logs_transfers_or_approvals(logs) # A proxy for transferFrom calls
         and heuristic.is_zero_value_tx(logs)): # All logs should be transfer events for zero tokens
             logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")
             ALERT_COUNT += 1
             PHISHING_CONTRACTS.update([transaction_event.to])
             score = (1.0 * ALERT_COUNT) / DENOMINATOR_COUNT
-            findings.append(AddressPoisoningFinding.create_finding(w3, transaction_event, score, log_length))
-    logging.info(list(PHISHING_CONTRACTS))
-    logging.info(f"Alert count: {ALERT_COUNT}")
+            decoded_logs = parse_logs_for_transfer_info(transaction_event, chain_id)
+            attackers, victims = get_attacker_victim_lists(w3, decoded_logs)
+            logging.info(f"Attackers: {attackers}")
+            logging.info(f"Victims: {victims}")
+            findings.append(AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims))
+    logging.info(f"Phishing contracts: {list(PHISHING_CONTRACTS)}")
     return findings
 
 

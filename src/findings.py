@@ -1,9 +1,9 @@
 from forta_agent import Finding, FindingSeverity, FindingType, EntityType
 
     
-class AddressPoisoningFinding:    
-    
-    def create_finding(w3, transaction_event, anomaly_score, log_length):
+class AddressPoisoningFinding:
+
+    def create_finding(transaction_event, anomaly_score, log_length, attackers, victims):
         finding = Finding(
                     {
                         "name": "Possible Address Poisoning",
@@ -15,7 +15,8 @@ class AddressPoisoningFinding:
                             "phishing_eoa": transaction_event.from_,
                             "phishing_contract": transaction_event.to,
                             "logs_length": log_length,
-                            "addresses": list(transaction_event.addresses.keys()),
+                            "attacker_addresses": attackers,
+                            "victim_addresses": victims,
                             "anomaly_score": anomaly_score
                         },
                         "labels": [
