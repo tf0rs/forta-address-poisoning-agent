@@ -17,7 +17,6 @@ STABLECOIN_CONTRACTS = {
     ]
 }
 
-STANDARD_HEURISTIC_CHAIN_IDS = [1, 56]
-
+# ABIs for decoding relevant log events
 TRANSFER_EVENT_ABI = '{"name":"Transfer","type":"event","anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}]}'
 APPROVAL_EVENT_ABI = '{"name":"Approval","type":"event","anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}]}'

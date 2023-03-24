@@ -1,7 +1,9 @@
 from forta_agent import get_json_rpc_url, Web3
 from src.findings import AddressPoisoningFinding
 from src.rules import AddressPoisoningRules
-from src.constants import APPROVAL_EVENT_ABI, TRANSFER_EVENT_ABI, STABLECOIN_CONTRACTS
+from src.constants import TRANSFER_EVENT_ABI, STABLECOIN_CONTRACTS
+from src.keys import ETHERSCAN_API_KEY
+import requests
 import logging
 import sys
 
@@ -61,17 +63,16 @@ def parse_logs_for_transfer_and_approval_info(transaction_event, chain_id):
         except Exception as e:
             logging.warning(f"Failed to decode transfer logs: {e}")
     
-    transfer_log_args = [log['args'] for log in transfer_logs]
-
-    return transfer_log_args
+    return transfer_logs
 
 
 def get_attacker_victim_lists(w3, decoded_logs, alert_type):
+    log_args = [log['args'] for log in decoded_logs]
 
     if alert_type == "ZERO-VALUE-ADDRESS-POISONING":
         attackers = []
         victims = []
-        for log in decoded_logs:
+        for log in log_args:
             from_tx_count = w3.eth.get_transaction_count(log['from'])
             to_tx_count = w3.eth.get_transaction_count(log['to'])
             if from_tx_count > to_tx_count:
@@ -81,9 +82,9 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
                 attackers.append(log['from'])
                 victims.append(log['to'])
     elif alert_type == "ADDRESS-POISONING-LOW-VALUE":
-        senders = [log['from'] for log in decoded_logs]
-        receivers = [log['to'] for log in decoded_logs]
-        attackers = senders
+        senders = [str.lower(log['from']) for log in log_args]
+        receivers = [str.lower(log['to']) for log in log_args]
+        attackers = list(set(senders))
         victims = [x for x in receivers if x not in senders]
     elif alert_type == "ADDRESS-POISONING-FAKE-TOKEN":
         """PLACEHOLDER"""
@@ -92,9 +93,39 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
     return attackers, victims
 
 
+def make_etherscan_token_history_query(address_info, api_key):
+    endpoint = "https://api.etherscan.io/api"
+    json = {
+        "module": "account",
+        "action": "tokentx",
+        "contractaddress": address_info[1],
+        "address": address_info[0],
+        "apikey": api_key
+    }
+
+    response = requests.get(endpoint, params=json)
+    values = [transfer['value'] for transfer in response.json()['result'] if transfer['from'] == address_info[0]]
+
+    return values[:5]
+
+
+def check_for_similar_but_greater_transfer(decoded_logs, victims):
+    address_token_value_data = [(log['args']['to'], log['address'], log['args']['value']) for log in decoded_logs if str.lower(log['args']['to']) in victims]
+    address_transfer_history = {}
+
+    for entry in address_token_value_data:
+        address_transfer_history[entry[0]] = make_etherscan_token_history_query(entry, ETHERSCAN_API_KEY)
+
+        # Check if transferred value is in the values sent by the receiving address, ex. 16 in 16000
+        if str(entry[2]) not in str(address_transfer_history[entry[0]]):
+            return False
+
+    return True
+
+
 def detect_address_poisoning(w3, heuristic, transaction_event):
     """
-    PLACEHOLDER - INSERT HEURISTIC DESCRIPTION
+    Sprawled to check for zero value phishing, low value phishing, and fake token phishing
     :return: detect_address_poisoning: list(Finding)
     """
     global DENOMINATOR_COUNT
@@ -133,15 +164,23 @@ def detect_address_poisoning(w3, heuristic, transaction_event):
             logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")
             ALERT_TYPE = "ADDRESS-POISONING-ZERO-VALUE"
             ZERO_VALUE_PHISHING_CONTRACTS.update([transaction_event.to])
+            transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
+            attackers, victims = get_attacker_victim_lists(w3, transfer_logs, ALERT_TYPE)
 
         # Low value address poisoning conditions...
         elif (log_length >= 10
         and heuristic.are_all_logs_stablecoins(logs, chain_id) >= 0.9
         and heuristic.are_all_logs_transfers_or_approvals(logs)
         and heuristic.is_data_field_repeated(logs)):
-            logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")
+            logging.info(f"Possible low-value address poisoning - making additional checks...")
             ALERT_TYPE = "ADDRESS-POISONING-LOW-VALUE"
-            LOW_VALUE_PHISHING_CONTRACTS.update([transaction_event.to])
+            transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
+            attackers, victims = get_attacker_victim_lists(w3, transfer_logs, ALERT_TYPE)
+            if ((len(attackers) - len(victims)) == 1
+            and check_for_similar_but_greater_transfer(transfer_logs, victims)):
+                logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")
+                LOW_VALUE_PHISHING_CONTRACTS.update([transaction_event.to])
+
         """
         ELIF -> PLACEHOLDER FOR FAKE TOKEN CONDITIONS
         """
@@ -149,8 +188,6 @@ def detect_address_poisoning(w3, heuristic, transaction_event):
     if ALERT_TYPE != "":
         ALERT_COUNT += 1
         score = (1.0 * ALERT_COUNT) / DENOMINATOR_COUNT
-        transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
-        attackers, victims = get_attacker_victim_lists(w3, transfer_logs, ALERT_TYPE)
         findings.append(AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims, ALERT_TYPE))
 
     return findings
