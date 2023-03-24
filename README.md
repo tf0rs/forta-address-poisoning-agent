@@ -12,11 +12,23 @@ This agent detects address poisoning, phishing transactions.
 
 ## Alerts
 
-- ADDRESS-POISONING
-  - Fired when a transaction consists of more than 5 zero-value transferFrom calls, primarily for stablecoins
+- ADDRESS-POISONING-ZERO-VALUE-1
+  - Fired when a transaction consists of more than 3 zero-value Transfer events, primarily in stablecoins
   - Severity is always set to "medium"
   - Type is always set to "suspicious"
-  - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and addresses involved
+  - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and attacker and victim addresses
+
+- ADDRESS-POISONING-LOW-VALUE-2
+  - *******PLACEHOLDER*********
+  - Severity is always set to "medium"
+  - Type is always set to "suspicious"
+  - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and attacker and victim addresses
+
+- ADDRESS-POISONING-FAKE-TOKEN-3
+  - *******PLACEHOLDER*********
+  - Severity is always set to "medium"
+  - Type is always set to "suspicious"
+  - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and attacker and victim addresses
 
 ## Test Data
 

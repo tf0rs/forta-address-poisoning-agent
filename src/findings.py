@@ -3,12 +3,12 @@ from forta_agent import Finding, FindingSeverity, FindingType, EntityType
     
 class AddressPoisoningFinding:
 
-    def create_finding(transaction_event, anomaly_score, log_length, attackers, victims):
+    def create_finding(transaction_event, anomaly_score, log_length, attackers, victims, alert_type):
         finding = Finding(
                     {
                         "name": "Possible Address Poisoning",
-                        "description": f"Possible address poisoning transaction",
-                        "alert_id": "ADDRESS-POISONING",
+                        "description": "Possible address poisoning transaction",
+                        "alert_id": alert_type,
                         "type": FindingType.Suspicious,
                         "severity": FindingSeverity.Medium,
                         "metadata": {

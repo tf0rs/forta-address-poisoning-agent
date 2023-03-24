@@ -1,6 +1,7 @@
 from hexbytes import HexBytes
 from forta_agent import Web3
 from src.constants import STABLECOIN_CONTRACTS
+from src.keys import ETHERSCAN_API_KEY
 
 
 class AddressPoisoningRules:
@@ -66,4 +67,14 @@ class AddressPoisoningRules:
                 return False
             else:
                 continue
+        return True
+
+    
+    @staticmethod
+    def is_data_field_repeated(logs):
+        data_fields = [log['data'] for log in logs]
+
+        if len(set(data_fields)) > (len(data_fields)/2):
+            return False
+        
         return True
