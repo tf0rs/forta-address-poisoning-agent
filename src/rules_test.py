@@ -41,24 +41,24 @@ class TestAddressPoisoningRules:
 
 
     def test_are_all_logs_stablecoins_positive(self):
-        assert heuristic.are_all_logs_stablecoins(MOCK_TX_HASH_LOGS_MAPPING['0xpositive']['logs'], w3.eth.chain_id) >= 0.8 
+        assert heuristic.are_all_logs_stablecoins(MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs'], w3.eth.chain_id) >= 0.8 
 
 
     def test_are_all_logs_stablecoins_negative(self):
-        assert (heuristic.are_all_logs_stablecoins(MOCK_TX_HASH_LOGS_MAPPING['0xnegative']['logs'], w3.eth.chain_id) >= 0.8) is False 
+        assert (heuristic.are_all_logs_stablecoins(MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs'], w3.eth.chain_id) >= 0.8) is False 
 
 
     def test_are_all_logs_transfers_positive(self):
-        assert heuristic.are_all_logs_transfers_or_approvals(MOCK_TX_HASH_LOGS_MAPPING['0xpositive']['logs']) is True
+        assert heuristic.are_all_logs_transfers_or_approvals(MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs']) is True
 
 
     def test_are_all_logs_transfers_negative(self):
-        assert heuristic.are_all_logs_transfers_or_approvals(MOCK_TX_HASH_LOGS_MAPPING['0xnegative']['logs']) is False
+        assert heuristic.are_all_logs_transfers_or_approvals(MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs']) is False
 
 
     def test_is_zero_value_tx_positive(self):
-        assert heuristic.is_zero_value_tx(MOCK_TX_HASH_LOGS_MAPPING['0xpositive']['logs']) is True
+        assert heuristic.is_zero_value_tx(MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs']) is True
 
 
     def test_is_zero_value_tx_negative(self):
-        assert heuristic.is_zero_value_tx(MOCK_TX_HASH_LOGS_MAPPING['0xnegative']['logs']) is False
+        assert heuristic.is_zero_value_tx(MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs']) is False

@@ -34,7 +34,7 @@ class AddressPoisoningFinding:
                             },
                             {
                                 "entityType": EntityType.Transaction,
-                                "entity": transaction_event.transaction.hash,
+                                "entity": transaction_event.hash,
                                 "label": "address-poisoning",
                                 "confidence": 0.7
                             },
