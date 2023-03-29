@@ -70,7 +70,7 @@ def parse_logs_for_transfer_and_approval_info(transaction_event, chain_id):
                     transfer_logs.append(log)
         except Exception as e:
             logging.warning(f"Failed to decode transfer logs: {e}")
-    logging.info(transfer_logs)
+
     return transfer_logs
 
 
@@ -93,7 +93,7 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
         senders = [str.lower(log['from']) for log in log_args]
         receivers = [str.lower(log['to']) for log in log_args]
         attackers = list(set(senders))
-        victims = [x for x in receivers if x not in senders]
+        victims = list(set([x for x in receivers if x not in senders]))
     elif alert_type == "ADDRESS-POISONING-FAKE-TOKEN":
         """PLACEHOLDER"""
         pass
@@ -123,6 +123,7 @@ def check_for_similar_transfer(etherscan, decoded_logs, victims):
             logging.info(f"Failed to find {str(entry[2])} in {str(address_transfer_history[entry[0]])}")
             return False
         logging.info(f"Detected {str(entry[2])} in {str(address_transfer_history[entry[0]])}")
+    
     return True
 
 
@@ -186,8 +187,13 @@ def detect_address_poisoning(w3, etherscan, heuristic, transaction_event):
         and heuristic.is_data_field_repeated(logs)):
             logging.info(f"Possible low-value address poisoning - making additional checks...")
             PENDING_ALERT_TYPE = "ADDRESS-POISONING-LOW-VALUE"
+            logging.info("Parsing logs...")
             transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
+            logging.info("Getting attacker, victim info...")
             attackers, victims = get_attacker_victim_lists(w3, transfer_logs, PENDING_ALERT_TYPE)
+            logging.info("Making additional checks")
+            logging.info(f"First check: {attackers, victims}")
+            logging.info(f"Second check: {check_for_similar_transfer(etherscan, transfer_logs, victims)}")
             if ((len(attackers) - len(victims)) == 1
             and check_for_similar_transfer(etherscan, transfer_logs, victims)):
                 logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")

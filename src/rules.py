@@ -74,7 +74,8 @@ class AddressPoisoningRules:
     def is_data_field_repeated(logs):
         data_fields = [log['data'] for log in logs]
 
-        if len(set(data_fields)) > (len(data_fields)/2):
+        if (len(set(data_fields)) > (len(data_fields)/2)
+        or "0x0000000000000000000000000000000000000000000000000000000000000000" in data_fields):
             return False
         
         return True
