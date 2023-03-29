@@ -128,7 +128,7 @@ def check_for_similar_transfer(etherscan, decoded_logs, victims):
 
 def detect_address_poisoning(w3, etherscan, heuristic, transaction_event):
     """
-    Sprawled to check for zero value phishing, low value phishing, and fake token phishing
+    Expanded to check for zero value phishing, low value phishing, and fake token phishing
     :return: detect_address_poisoning: list(Finding)
     """
     # Alert counts...

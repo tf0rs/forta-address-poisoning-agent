@@ -1,6 +1,7 @@
 from web3_mock import *
 from rules import AddressPoisoningRules
 from forta_agent import create_transaction_event
+from web3_constants_mock import *
 
 w3 = Web3Mock()
 heuristic = AddressPoisoningRules()

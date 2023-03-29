@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import MagicMock
 import agent
 from forta_agent import FindingSeverity, FindingType, create_transaction_event, TransactionEvent
 from web3_mock import *
@@ -30,20 +30,12 @@ class TestAddressPoisoningAgent:
     def test_is_zero_value_address_poisoning(self):
         agent.initialize()
 
-        tx_event = Mock(spec=TransactionEvent)
+        tx_event = MagicMock(spec=TransactionEvent)
         tx_event.transaction = {}
         tx_event.to = VERIFIED_CONTRACT
         tx_event.from_ = NEW_EOA
         tx_event.hash = "0xpositive_zero"
         tx_event.filter_log.return_value = [
-            {
-                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                "args": {
-                    "to": "attacker",
-                    "from": "victim",
-                    "value": "0"
-                }
-            },
             {
                 "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
                 "args": {
@@ -69,27 +61,59 @@ class TestAddressPoisoningAgent:
     def test_is_not_zero_value_address_poisoning(self):
         agent.initialize()
 
-        tx_event = create_transaction_event({
-            'transaction': {
-                'to': VERIFIED_CONTRACT,
-                'from': NEW_EOA,
-                'hash': "0xnegative_zero"
+        tx_event = MagicMock(spec=TransactionEvent)
+        tx_event.transaction = {}
+        tx_event.to = VERIFIED_CONTRACT
+        tx_event.from_ = NEW_EOA
+        tx_event.hash = "0xnegative_zero"
+        tx_event.filter_log.return_value = [
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "attacker",
+                    "from": "victim",
+                    "value": "0"
+                }
+            },
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "attacker",
+                    "from": "victim",
+                    "value": "0"
+                }
             }
-        })
+        ]
 
         findings = agent.detect_address_poisoning(w3, etherscan, heuristic, tx_event)
         assert len(findings) == 0, "This should not have triggered an alert - negative case"
 
 
-    def test_is_not_low_value_address_poisoning(self):
+    def test_is_low_value_address_poisoning(self):
         agent.initialize()
 
-        tx_event = create_transaction_event({
-            'transaction': {
-                'to': VERIFIED_CONTRACT,
-                'from': NEW_EOA,
-                'hash': "0xnegative"
+        tx_event = MagicMock(spec=TransactionEvent)
+        tx_event.transaction = {}
+        tx_event.to = VERIFIED_CONTRACT
+        tx_event.from_ = NEW_EOA
+        tx_event.hash = "0xpositive_low"
+        tx_event.filter_log.return_value = [
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "attacker",
+                    "from": "victim",
+                    "value": "0"
+                }
+            },
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "attacker",
+                    "from": "victim",
+                    "value": "0"
+                }
             }
-        })
+        ]
 
         pass
