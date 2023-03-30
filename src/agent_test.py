@@ -27,16 +27,117 @@ class TestAddressPoisoningAgent:
         assert len(findings) == 0, "This should not have triggered a finding - not to a contract"
 
 
-    def test_parse_logs_for_transfer_and_approval_info(self):
-        pass
+    def test_get_attacker_victim_lists_for_zero_value(self):
+        agent.initialize()
+
+        alert_type = "ZERO-VALUE-ADDRESS-POISONING"
+        logs = [
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "attacker",
+                    "from": "victim",
+                    "value": "0"
+                }
+            },
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "attacker",
+                    "from": "victim",
+                    "value": "0"
+                }
+            }
+        ]
+
+        attackers, victims = agent.get_attacker_victim_lists(w3, logs, alert_type)
+        assert len([a for a in attackers if "attacker" in a]) == len(attackers)
+        assert len([v for v in victims if v == "victim"]) == len(victims)
 
 
-    def test_get_attacker_victim_lists(self):
-        pass
+    def test_get_attacker_victim_lists_for_low_value(self):
+        agent.initialize()
+
+        alert_type = "ADDRESS-POISONING-LOW-VALUE"
+        logs = [
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "attacker",
+                    "from": "attacker_contract",
+                    "value": "82300"
+                }
+            },
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "victim",
+                    "from": "attacker",
+                    "value": "82300"
+                }
+            }
+        ]
+
+        attackers, victims = agent.get_attacker_victim_lists(w3, logs, alert_type)
+        assert len([a for a in attackers if "attacker" in a]) == len(attackers)
+        assert len([v for v in victims if v == "victim"]) == len(victims)
+        assert len(attackers) - len(victims) == 1
 
 
-    def test_check_for_similar_transfer(self):
-        pass
+    def test_positive_check_for_similar_transfer(self):
+        agent.initialize()
+
+        victims = ["victim"]
+        logs = [
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "attacker",
+                    "from": "attacker_contract",
+                    "value": "82300"
+                }
+            },
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "victim",
+                    "from": "attacker",
+                    "value": "82300"
+                }
+            }
+        ]
+
+        check_result = agent.check_for_similar_transfer(etherscan, logs, victims)
+        assert check_result, "This should find a matching value"
+    
+    
+    def test_negative_check_for_similar_transfer(self):
+        agent.initialize()
+
+        agent.initialize()
+
+        victims = ["user_one"]
+        logs = [
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "user_one",
+                    "from": "user_two",
+                    "value": "82300"
+                }
+            },
+            {
+                "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                "args": {
+                    "to": "user_three",
+                    "from": "user_four",
+                    "value": "82300"
+                }
+            }
+        ]
+
+        check_result = agent.check_for_similar_transfer(etherscan, logs, victims)
+        assert not check_result, "This should not find a matching value"
 
 
     def test_is_zero_value_address_poisoning(self):
@@ -146,16 +247,16 @@ class TestAddressPoisoningAgent:
             {
                 "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
                 "args": {
-                    "to": "user_a",
-                    "from": "user_contract",
+                    "to": "user_one",
+                    "from": "user_two",
                     "value": "1600"
                 }
             },
             {
                 "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
                 "args": {
-                    "to": "user_c",
-                    "from": "user_b",
+                    "to": "user_three",
+                    "from": "user_four",
                     "value": "15000"
                 }
             }
