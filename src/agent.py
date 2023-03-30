@@ -79,7 +79,7 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
     attackers = []
     victims = []
 
-    if alert_type == "ZERO-VALUE-ADDRESS-POISONING":
+    if alert_type == "ADDRESS-POISONING-ZERO-VALUE":
         for log in log_args:
             from_tx_count = w3.eth.get_transaction_count(log['from'])
             to_tx_count = w3.eth.get_transaction_count(log['to'])
@@ -143,22 +143,30 @@ def detect_address_poisoning(w3, etherscan, heuristic, transaction_event):
     global LOW_VALUE_PHISHING_CONTRACTS
     global FAKE_TOKEN_PHISHING_CONTRACTS
 
-    ALERT_TYPE = ""
-
     findings = []
     chain_id = w3.eth.chain_id
     logs = w3.eth.get_transaction_receipt(transaction_event.hash)['logs']
 
+    # Return alert type if previously detected, but if not return empty string
+    ALERT_TYPE = heuristic.have_addresses_been_detected(
+        transaction_event, ZERO_VALUE_PHISHING_CONTRACTS, LOW_VALUE_PHISHING_CONTRACTS, FAKE_TOKEN_PHISHING_CONTRACTS
+    )
+
     # Check if transaction is calling a previously detected phishing contract
-    if heuristic.have_addresses_been_detected(transaction_event, ZERO_VALUE_PHISHING_CONTRACTS):
+    if ALERT_TYPE != "":
         logging.info(f"Tx is from known phishing contract: {transaction_event.to}")
         DENOMINATOR_COUNT += 1
-        ZERO_VALUE_ALERT_COUNT += 1
-        score = (1.0 * ZERO_VALUE_ALERT_COUNT) / DENOMINATOR_COUNT
-        log_length = len(logs)
+        if ALERT_TYPE == "ADDRESS-POISONING-ZERO-VALUE":
+            ZERO_VALUE_ALERT_COUNT += 1
+            score = (1.0 * ZERO_VALUE_ALERT_COUNT) / DENOMINATOR_COUNT
+        elif ALERT_TYPE == "ADDRESS-POISONING-LOW-VALUE":
+            LOW_VALUE_ALERT_COUNT += 1
+            score = (1.0 * LOW_VALUE_ALERT_COUNT) / DENOMINATOR_COUNT
         transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
-        attackers, victims = get_attacker_victim_lists(w3, transfer_logs)
-        findings.append(AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims))
+        attackers, victims = get_attacker_victim_lists(w3, transfer_logs, ALERT_TYPE)
+        findings.append(
+            AddressPoisoningFinding.create_finding(transaction_event, score, len(logs), attackers, victims, ALERT_TYPE)
+        )
         return findings
 
     elif heuristic.is_contract(w3, transaction_event.to):
@@ -211,7 +219,9 @@ def detect_address_poisoning(w3, etherscan, heuristic, transaction_event):
         findings.append(
             AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims, ALERT_TYPE)
         )
-
+    logging.info(f"Alert counts: {ZERO_VALUE_ALERT_COUNT, LOW_VALUE_ALERT_COUNT}")
+    logging.info(f"Zero value contracts: {ZERO_VALUE_PHISHING_CONTRACTS}")
+    logging.info(f"Low value contracts: {LOW_VALUE_PHISHING_CONTRACTS}")
     return findings
 
 

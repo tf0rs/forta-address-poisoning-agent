@@ -18,7 +18,9 @@ class TestAddressPoisoningRules:
 
     
     def test_have_addresses_been_detected_positive(self):
-        known_phishing_addresses = set([NEW_EOA, VERIFIED_CONTRACT])
+        zero_value_contracts = set([NEW_EOA])
+        low_value_contracts = set([])
+        fake_token_contracts = set([])
 
         positive_case = create_transaction_event({
             'transaction': {
@@ -26,11 +28,15 @@ class TestAddressPoisoningRules:
                 'from': VERIFIED_CONTRACT
             }
         })
-        assert heuristic.have_addresses_been_detected(positive_case, known_phishing_addresses) 
+        assert heuristic.have_addresses_been_detected(
+            positive_case, zero_value_contracts, low_value_contracts, fake_token_contracts
+        ) == "ADDRESS-POISONING-ZERO-VALUE", "Address should be flagged as being in the zero_value_contracts"
 
 
     def test_have_addresses_been_detected_negative(self):
-        known_phishing_addresses = set([NEW_EOA, VERIFIED_CONTRACT])
+        zero_value_contracts = set([NEW_EOA, VERIFIED_CONTRACT])
+        low_value_contracts = set([])
+        fake_token_contracts = set([])
 
         negative_case = create_transaction_event({
             'transaction': {
@@ -38,7 +44,9 @@ class TestAddressPoisoningRules:
                 'from': VERIFIED_CONTRACT
             }
         })
-        assert heuristic.have_addresses_been_detected(negative_case, known_phishing_addresses) is False 
+        assert heuristic.have_addresses_been_detected(
+            negative_case, zero_value_contracts, low_value_contracts, fake_token_contracts
+        ) == "", "Address should be flagged as being in the zero_value_contracts"
 
 
     def test_are_all_logs_stablecoins_positive(self):

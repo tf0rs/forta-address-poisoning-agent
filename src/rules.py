@@ -19,15 +19,19 @@ class AddressPoisoningRules:
 
 
     @staticmethod
-    def have_addresses_been_detected(transaction_event, phishing_addresses):
+    def have_addresses_been_detected(transaction_event, zero_value_contracts, low_value_contracts, fake_token_contracts):
         """
         check if sender and receiver have previously been identified as phishing addresses
         :return: have_addresses_been_detected: bool
         """
-        if transaction_event.to in phishing_addresses:
-            return True
+        if transaction_event.to in zero_value_contracts:
+            return "ADDRESS-POISONING-ZERO-VALUE"
+        elif transaction_event.to in low_value_contracts:
+            return "ADDRESS-POISONING-LOW-VALUE"
+        elif transaction_event.to in fake_token_contracts:
+            return "ADDRESS-POISONING-FAKE-TOKEN"
         else:
-            return False
+            return ""
 
 
     @staticmethod
