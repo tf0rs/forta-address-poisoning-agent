@@ -89,6 +89,8 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
             else:
                 attackers.append(log['from'])
                 victims.append(log['to'])
+        attackers = list(set(attackers))
+        victims = list(set(victims))
     elif alert_type == "ADDRESS-POISONING-LOW-VALUE":
         senders = [str.lower(log['from']) for log in log_args]
         receivers = [str.lower(log['to']) for log in log_args]
@@ -183,6 +185,7 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
             ZERO_VALUE_PHISHING_CONTRACTS.update([transaction_event.to])
             transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
             attackers, victims = get_attacker_victim_lists(w3, transfer_logs, ALERT_TYPE)
+            attackers.extend([transaction_event.from_, transaction_event.to])
 
         # Low value address poisoning heuristic ->
         elif (log_length >= 10
