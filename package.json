@@ -1,7 +1,7 @@
 {
-  "name": "forta-address-poisoning",
-  "version": "0.0.1",
-  "description": "Agent detecting address poisoning, or zero value phishing transfers",
+  "name": "address-poisoning-detector",
+  "version": "0.0.2",
+  "description": "Agent detecting address poisoning, or zero and low value phishing transfers",
   "repository": "https://github.com/tf0rs/forta-address-poisoning-agent",
   "chainIds": [
     1, 56, 137

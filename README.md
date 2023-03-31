@@ -40,4 +40,4 @@ The agent behaviour can be verified with the following transactions:
 
 - ADDRESS-POISONING-LOW-VALUE
   - 0xbaa8ad798afc2abfd75def7b4ab8ee64032cc2c80c74bbf082aeca6b395efb4d
-  - 
+  - 0x914dca18d23a70569896cd624fec9733fb3a3022f280725352f4d2566d137b1b
