@@ -1,13 +1,13 @@
 from unittest.mock import MagicMock
 import agent
-from forta_agent import FindingSeverity, FindingType, create_transaction_event, TransactionEvent
+from forta_agent import create_transaction_event, TransactionEvent
 from web3_mock import *
 from rules import AddressPoisoningRules
-from etherscan_mock import EtherscanMock
+from blockexplorer_mock import BlockExplorerMock
 
 
 w3 = Web3Mock()
-etherscan = EtherscanMock()
+blockexplorer = BlockExplorerMock(w3.eth.chain_id)
 heuristic = AddressPoisoningRules()
 
 class TestAddressPoisoningAgent:
@@ -23,7 +23,7 @@ class TestAddressPoisoningAgent:
             }
         })
 
-        findings = agent.detect_address_poisoning(w3, etherscan, heuristic, tx_event)
+        findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
         assert len(findings) == 0, "This should not have triggered a finding - not to a contract"
 
 
@@ -107,13 +107,11 @@ class TestAddressPoisoningAgent:
             }
         ]
 
-        check_result = agent.check_for_similar_transfer(etherscan, logs, victims)
+        check_result = agent.check_for_similar_transfer(blockexplorer, logs, victims)
         assert check_result, "This should find a matching value"
     
     
     def test_negative_check_for_similar_transfer(self):
-        agent.initialize()
-
         agent.initialize()
 
         victims = ["user_one"]
@@ -136,7 +134,7 @@ class TestAddressPoisoningAgent:
             }
         ]
 
-        check_result = agent.check_for_similar_transfer(etherscan, logs, victims)
+        check_result = agent.check_for_similar_transfer(blockexplorer, logs, victims)
         assert not check_result, "This should not find a matching value"
 
 
@@ -167,7 +165,7 @@ class TestAddressPoisoningAgent:
             }
         ]
         
-        findings = agent.detect_address_poisoning(w3, etherscan, heuristic, tx_event)
+        findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
         assert len(findings) == 1, "This should have triggered an alert - positive case"
         assert findings[0].alert_id == "ADDRESS-POISONING-ZERO-VALUE"
 
@@ -199,7 +197,7 @@ class TestAddressPoisoningAgent:
             }
         ]
 
-        findings = agent.detect_address_poisoning(w3, etherscan, heuristic, tx_event)
+        findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
         assert len(findings) == 0, "This should not have triggered an alert - negative case"
 
 
@@ -230,7 +228,7 @@ class TestAddressPoisoningAgent:
             }
         ]
 
-        findings = agent.detect_address_poisoning(w3, etherscan, heuristic, tx_event)
+        findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
         assert len(findings) == 1
         assert findings[0].alert_id == "ADDRESS-POISONING-LOW-VALUE"
 
@@ -262,5 +260,5 @@ class TestAddressPoisoningAgent:
             }
         ]
 
-        findings = agent.detect_address_poisoning(w3, etherscan, heuristic, tx_event)
+        findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
         assert len(findings) == 0, "This should not have triggered an alert - negative case"

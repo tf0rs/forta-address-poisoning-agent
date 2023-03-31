@@ -19,7 +19,7 @@ This agent detects address poisoning, phishing transactions.
   - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and attacker and victim addresses
 
 - ADDRESS-POISONING-LOW-VALUE
-  - *******PLACEHOLDER*********
+  - Fired when a transaction sends low-value dusting payments to victims, imitating amounts they've previously sent, ex. .016 USDT - 16,000 USDT
   - Severity is always set to "medium"
   - Type is always set to "suspicious"
   - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and attacker and victim addresses

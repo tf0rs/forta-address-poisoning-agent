@@ -2,14 +2,14 @@ from forta_agent import get_json_rpc_url, Web3
 from src.findings import AddressPoisoningFinding
 from src.rules import AddressPoisoningRules
 from src.constants import TRANSFER_EVENT_ABI, STABLECOIN_CONTRACTS
-from src.etherscan import Etherscan
+from src.blockexplorer import BlockExplorer
 import logging
 import sys
 
 # Initialize web3
 web3 = Web3(Web3.HTTPProvider(get_json_rpc_url()))
 heuristic = AddressPoisoningRules()
-etherscan = Etherscan()
+blockexplorer = BlockExplorer(web3.eth.chain_id)
 
 # Logging set up.
 root = logging.getLogger()
@@ -101,7 +101,7 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
     return attackers, victims
 
 
-def check_for_similar_transfer(etherscan, decoded_logs, victims):
+def check_for_similar_transfer(blockexplorer, decoded_logs, victims):
 
     address_token_value_data = [(log['args']['to'], log['address'], log['args']['value']) for log in decoded_logs \
             if str.lower(log['args']['to']) in victims]
@@ -109,25 +109,21 @@ def check_for_similar_transfer(etherscan, decoded_logs, victims):
 
     for entry in address_token_value_data:
         try:
-            logging.info("Querying Etherscan for token history...")
-            address_transfer_history[entry[0]] = etherscan.make_etherscan_token_history_query(entry)
+            address_transfer_history[entry[0]] = blockexplorer.make_token_history_query(entry)
         except Exception as e:
-            logging.info(f"Failed to retrieve transaction history: {e}")
+            logging.info(f"Failed to retrieve transaction history from Etherscan: {e}")
             address_transfer_history[entry[0]] = None
 
         # Check if transferred value is in the values sent by the receiving address, ex. 16 in 16000
         # This is relatively dumb in its approach, so should be improved
-        logging.info("Checking if received value is in sent values")
         if (str(entry[2])[:3] not in str(address_transfer_history[entry[0]]) 
         and address_transfer_history[entry[0]] is not None):
-            logging.info(f"Failed to find {str(entry[2])} in {str(address_transfer_history[entry[0]])}")
             return False
-        logging.info(f"Detected {str(entry[2])} in {str(address_transfer_history[entry[0]])}")
     
     return True
 
 
-def detect_address_poisoning(w3, etherscan, heuristic, transaction_event):
+def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
     """
     Expanded to check for zero value phishing, low value phishing, and fake token phishing
     :return: detect_address_poisoning: list(Finding)
@@ -195,20 +191,16 @@ def detect_address_poisoning(w3, etherscan, heuristic, transaction_event):
         and heuristic.is_data_field_repeated(logs)):
             logging.info(f"Possible low-value address poisoning - making additional checks...")
             PENDING_ALERT_TYPE = "ADDRESS-POISONING-LOW-VALUE"
-            logging.info("Parsing logs...")
             transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
-            logging.info("Getting attacker, victim info...")
             attackers, victims = get_attacker_victim_lists(w3, transfer_logs, PENDING_ALERT_TYPE)
-            logging.info("Making additional checks")
-            logging.info(f"First check: {attackers, victims}")
-            logging.info(f"Second check: {check_for_similar_transfer(etherscan, transfer_logs, victims)}")
             if ((len(attackers) - len(victims)) == 1
-            and check_for_similar_transfer(etherscan, transfer_logs, victims)):
-                logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")
+            and check_for_similar_transfer(blockexplorer, transfer_logs, victims)):
+                logging.info(f"Detected phishing transaction from EOA - {transaction_event.from_}, and Contract - {transaction_event.to}")
                 ALERT_TYPE = PENDING_ALERT_TYPE
                 LOW_VALUE_ALERT_COUNT += 1
                 score = (1.0 * LOW_VALUE_ALERT_COUNT) / DENOMINATOR_COUNT
                 LOW_VALUE_PHISHING_CONTRACTS.update([transaction_event.to])
+                attackers.append(transaction_event.from_)
 
         """
         ELIF -> PLACEHOLDER FOR FAKE TOKEN CONDITIONS
@@ -219,20 +211,18 @@ def detect_address_poisoning(w3, etherscan, heuristic, transaction_event):
         findings.append(
             AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims, ALERT_TYPE)
         )
-    logging.info(f"Alert counts: {ZERO_VALUE_ALERT_COUNT, LOW_VALUE_ALERT_COUNT}")
-    logging.info(f"Zero value contracts: {ZERO_VALUE_PHISHING_CONTRACTS}")
-    logging.info(f"Low value contracts: {LOW_VALUE_PHISHING_CONTRACTS}")
+
     return findings
 
 
-def provide_handle_transaction(w3, etherscan, heuristic):
+def provide_handle_transaction(w3, blockexplorer, heuristic):
     def handle_transaction(transaction_event):
-        return detect_address_poisoning(w3, etherscan, heuristic, transaction_event)
+        return detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event)
 
     return handle_transaction
 
 
-real_handle_transaction = provide_handle_transaction(web3, etherscan, heuristic)
+real_handle_transaction = provide_handle_transaction(web3, blockexplorer, heuristic)
 
 
 def handle_transaction(transaction_event):
