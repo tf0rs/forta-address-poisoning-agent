@@ -5,7 +5,7 @@ class BlockExplorer():
 
     def __init__(self, chain_id):
         if chain_id == 1:
-            self.host = "https://api.etherscan.io"
+            self.host = "https://api.etherscan.io/api"
             self.api_key = ETHERSCAN_API_KEY
         elif chain_id == 137:
             self.host = "https://api.polygonscan.com"
@@ -21,10 +21,10 @@ class BlockExplorer():
             "action": "tokentx",
             "contractaddress": address_info[1],
             "address": address_info[0],
-            "apikey": self.key
+            "apikey": self.api_key
         }
 
-        response = requests.get(self.endpoint, params=params)
+        response = requests.get(self.host, params=params)
         values = [transfer['value'] for transfer in response.json()['result'] if transfer['from'] == str.lower(address_info[0])]
         
         return values[-5:]

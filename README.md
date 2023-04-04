@@ -25,7 +25,7 @@ This agent detects address poisoning, phishing transactions.
   - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and attacker and victim addresses
 
 - ADDRESS-POISONING-FAKE-TOKEN
-  - *******PLACEHOLDER*********
+  - *******PLACEHOLDER*******
   - Severity is always set to "medium"
   - Type is always set to "suspicious"
   - Other metadata includes the phishing eoa and contract involved, the length of the transaction logs, and attacker and victim addresses

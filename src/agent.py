@@ -1,7 +1,7 @@
 from forta_agent import get_json_rpc_url, Web3
 from src.findings import AddressPoisoningFinding
 from src.rules import AddressPoisoningRules
-from src.constants import TRANSFER_EVENT_ABI, STABLECOIN_CONTRACTS
+from src.constants import *
 from src.blockexplorer import BlockExplorer
 import logging
 import sys
@@ -59,6 +59,11 @@ def initialize():
     FAKE_TOKEN_PHISHING_CONTRACTS = set()
 
 
+"""
+Needs to be edited to allow for parsing logs when the contract is not a stablecoin...
+Might want to separate this out. It probably shouldn't have been part of this function in
+the first place...
+"""
 def parse_logs_for_transfer_and_approval_info(transaction_event, chain_id):
     transfer_logs = []
 
@@ -79,10 +84,14 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
     attackers = []
     victims = []
 
-    if alert_type == "ADDRESS-POISONING-ZERO-VALUE":
+    logging.info(alert_type)
+
+    if (alert_type == "ADDRESS-POISONING-ZERO-VALUE" 
+    or alert_type == "ADDRESS-POISONING-FAKE-TOKEN"):
         for log in log_args:
             from_tx_count = w3.eth.get_transaction_count(log['from'])
             to_tx_count = w3.eth.get_transaction_count(log['to'])
+            logging.info(from_tx_count, to_tx_count)
             if from_tx_count > to_tx_count:
                 attackers.append(log['to'])
                 victims.append(log['from'])
@@ -96,9 +105,6 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
         receivers = [str.lower(log['to']) for log in log_args]
         attackers = list(set(senders))
         victims = list(set([x for x in receivers if x not in senders]))
-    elif alert_type == "ADDRESS-POISONING-FAKE-TOKEN":
-        """PLACEHOLDER"""
-        pass
 
     return attackers, victims
 
@@ -110,10 +116,11 @@ def check_for_similar_transfer(blockexplorer, decoded_logs, victims):
     address_transfer_history = {}
 
     for entry in address_token_value_data:
+        logging.info(f"Entry: {entry}")
         try:
             address_transfer_history[entry[0]] = blockexplorer.make_token_history_query(entry)
         except Exception as e:
-            logging.info(f"Failed to retrieve transaction history from Etherscan: {e}")
+            logging.info(f"Failed to retrieve transaction history from blockexplorer: {e}")
             address_transfer_history[entry[0]] = None
 
         # Check if transferred value is in the values sent by the receiving address, ex. 16 in 16000
@@ -173,6 +180,7 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
             logs = logs[:-1]
         log_length = len(logs)
 
+        logging.info("Checking for new heuristic...")
         # Zero value address poisoning heuristic ->
         if (log_length >= 3 
         and heuristic.are_all_logs_stablecoins(logs, chain_id) >= 0.6 
@@ -205,9 +213,16 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
                 LOW_VALUE_PHISHING_CONTRACTS.update([transaction_event.to])
                 attackers.append(transaction_event.from_)
 
-        """
-        ELIF -> PLACEHOLDER FOR FAKE TOKEN CONDITIONS
-        """
+        # Fake token address poisoning heuristic ->
+        # elif (log_length > 10
+        # and heuristic.are_tokens_using_known_symbols(w3, logs, chain_id)):
+        #     ALERT_TYPE = "ADDRESS-POISONING-FAKE-TOKEN"
+        #     FAKE_TOKEN_ALERT_COUNT += 1
+        #     score = (1.0 * FAKE_TOKEN_ALERT_COUNT) / DENOMINATOR_COUNT
+        #     FAKE_TOKEN_PHISHING_CONTRACTS.update([transaction_event.to])
+        #     transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
+        #     attackers, victims = get_attacker_victim_lists(w3, transfer_logs, ALERT_TYPE)
+        #     attackers.extend([transaction_event.from_, transaction_event.to])
 
     if ALERT_TYPE != "":
         logging.info("Appending finding...")

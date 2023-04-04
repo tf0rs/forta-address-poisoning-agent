@@ -1,7 +1,6 @@
 from hexbytes import HexBytes
 from forta_agent import Web3
-from src.constants import STABLECOIN_CONTRACTS
-from src.keys import ETHERSCAN_API_KEY
+from src.constants import STABLECOIN_CONTRACTS, SYMBOL_CALL_ABI, OFFICIAL_SYMBOLS
 
 
 class AddressPoisoningRules:
@@ -82,4 +81,30 @@ class AddressPoisoningRules:
         or "0x0000000000000000000000000000000000000000000000000000000000000000" in data_fields):
             return False
         
+        return True
+
+    @staticmethod
+    def are_tokens_using_known_symbols(w3, logs, chain_id):
+        contracts = list(set([log['address'] for log in logs]))
+        print(contracts)
+        failed_calls = 0
+
+        for address in contracts:
+            if address in STABLECOIN_CONTRACTS[chain_id]:
+                return False
+            else:
+                contract = w3.eth.contract(address=address, abi=SYMBOL_CALL_ABI)
+                try:
+                    symbol = contract.functions.symbol().call()
+                    if symbol in OFFICIAL_SYMBOLS[chain_id]:
+                        continue
+                    else:
+                        return False
+                except Exception:
+                    failed_calls += 1
+                    continue
+
+        if failed_calls > (len(logs) / 2):
+            return False
+
         return True
