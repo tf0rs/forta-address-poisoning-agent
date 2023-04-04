@@ -8,10 +8,10 @@ class BlockExplorer():
             self.host = "https://api.etherscan.io/api"
             self.api_key = ETHERSCAN_API_KEY
         elif chain_id == 137:
-            self.host = "https://api.polygonscan.com"
+            self.host = "https://api.polygonscan.com/api"
             self.api_key = POLYGON_API_KEY
         elif chain_id == 56:
-            self.host = "https://api.bscscan.com"
+            self.host = "https://api.bscscan.com/api"
             self.api_key = BSC_API_KEY
 
 
