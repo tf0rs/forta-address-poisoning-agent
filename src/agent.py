@@ -113,23 +113,32 @@ def check_for_similar_transfer(blockexplorer, decoded_logs, victims):
 
     address_token_value_data = [(log['args']['to'], log['address'], log['args']['value']) for log in decoded_logs \
             if str.lower(log['args']['to']) in victims]
-    address_transfer_history = {}
 
-    for entry in address_token_value_data:
+    def process_entry(entry):
         logging.info(f"Entry: {entry}")
         try:
-            address_transfer_history[entry[0]] = blockexplorer.make_token_history_query(entry)
+            transfer_history = blockexplorer.make_token_history_query(entry)
         except Exception as e:
             logging.info(f"Failed to retrieve transaction history from blockexplorer: {e}")
-            address_transfer_history[entry[0]] = None
+            transfer_history = None
 
-        # Check if transferred value is in the values sent by the receiving address, ex. 16 in 16000
-        # This is relatively dumb in its approach, so should be improved
-        if (str(entry[2])[:3] not in str(address_transfer_history[entry[0]]) 
-        and address_transfer_history[entry[0]] is not None):
-            return False
-    
+        return (transfer_history is None, str(entry[2])[:3] not in str(transfer_history) if transfer_history is not None else False)
+
+    results = [process_entry(entry) for entry in address_token_value_data]
+
+    failed_queries = sum(result[0] for result in results)
+
+    # Check if most queries fail...
+    if failed_queries > (len(address_token_value_data) / 2):
+        logging.info(f"Failed to retrieve tx history {failed_queries} times for {len(address_token_value_data)} addresses")
+        return False
+
+    # Check if any query has the transferred value not in the values sent by the receiving address
+    if any(result[1] for result in results):
+        return False
+
     return True
+
 
 
 def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
@@ -214,15 +223,15 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
                 attackers.append(transaction_event.from_)
 
         # Fake token address poisoning heuristic ->
-        # elif (log_length > 10
-        # and heuristic.are_tokens_using_known_symbols(w3, logs, chain_id)):
-        #     ALERT_TYPE = "ADDRESS-POISONING-FAKE-TOKEN"
-        #     FAKE_TOKEN_ALERT_COUNT += 1
-        #     score = (1.0 * FAKE_TOKEN_ALERT_COUNT) / DENOMINATOR_COUNT
-        #     FAKE_TOKEN_PHISHING_CONTRACTS.update([transaction_event.to])
-        #     transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
-        #     attackers, victims = get_attacker_victim_lists(w3, transfer_logs, ALERT_TYPE)
-        #     attackers.extend([transaction_event.from_, transaction_event.to])
+        elif (log_length > 10
+        and heuristic.are_tokens_using_known_symbols(w3, logs, chain_id)):
+            ALERT_TYPE = "ADDRESS-POISONING-FAKE-TOKEN"
+            FAKE_TOKEN_ALERT_COUNT += 1
+            score = (1.0 * FAKE_TOKEN_ALERT_COUNT) / DENOMINATOR_COUNT
+            FAKE_TOKEN_PHISHING_CONTRACTS.update([transaction_event.to])
+            transfer_logs = parse_logs_for_transfer_and_approval_info(transaction_event, chain_id)
+            attackers, victims = get_attacker_victim_lists(w3, transfer_logs, ALERT_TYPE)
+            attackers.extend([transaction_event.from_, transaction_event.to])
 
     if ALERT_TYPE != "":
         logging.info("Appending finding...")
