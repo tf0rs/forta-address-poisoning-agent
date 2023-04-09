@@ -85,8 +85,7 @@ class AddressPoisoningRules:
 
     @staticmethod
     def are_tokens_using_known_symbols(w3, logs, chain_id):
-        contracts = list(set([log['address'] for log in logs]))
-        print(contracts)
+        contracts = set([log['address'] for log in logs])
         failed_calls = 0
 
         for address in contracts:
