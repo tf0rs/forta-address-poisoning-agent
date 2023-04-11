@@ -1,6 +1,7 @@
 from web3 import Web3
 from hexbytes import HexBytes
 from src.web3_constants_mock import *
+from unittest.mock import MagicMock
 
 
 class Web3Mock:
@@ -10,9 +11,12 @@ class Web3Mock:
 
 class EthMock:
     def __init__(self):
-        self.contract = ContractMock(address=None, abi=None)
+        pass
 
     chain_id = 1
+
+    def contract(self, address, abi):
+        return ContractMock(address=address, abi=abi)
 
     def get_code(self, address):
         if address == Web3.toChecksumAddress(VERIFIED_CONTRACT):
@@ -36,16 +40,23 @@ class EthMock:
 
 
 class ContractMock:
-    def __init__(self, address, abi):
-        self.functions = FunctionsMock()
+    def __init__(self, address, abi, functions=None):
+        self.address = address
+        self.functions = functions if functions is not None else FunctionsMock()
+
+        if self.address == "0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F":
+            self.functions.symbol.return_value.call.return_value = "USDC"
+        elif self.address == "0xCf117403474eEaC230DaCcB3b54c0dABeB94Ae22":
+            self.functions.symbol.return_value.call.return_value = "USDT"
+        else:
+            self.functions.symbol.return_value.call.return_value = "NULL"
 
     def __call__(self, address, *args, **kwargs):
         return self
 
+    def __getattr__(self, name):
+        return getattr(self.functions, name)
 
 class FunctionsMock:
     def __init__(self):
-        self.return_value = None
-
-    def call(self, *_, **__):
-        return self.return_value
+        self.symbol = MagicMock()

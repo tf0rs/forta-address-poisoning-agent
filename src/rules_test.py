@@ -2,6 +2,7 @@ from web3_mock import *
 from rules import AddressPoisoningRules
 from forta_agent import create_transaction_event
 from web3_constants_mock import *
+from unittest.mock import MagicMock
 
 w3 = Web3Mock()
 heuristic = AddressPoisoningRules()
@@ -50,24 +51,53 @@ class TestAddressPoisoningRules:
 
 
     def test_are_all_logs_stablecoins_positive(self):
-        assert heuristic.are_all_logs_stablecoins(MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs'], w3.eth.chain_id) >= 0.8 
+        assert heuristic.are_all_logs_stablecoins(
+            MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs'], w3.eth.chain_id
+        ) >= 0.8 
 
 
     def test_are_all_logs_stablecoins_negative(self):
-        assert (heuristic.are_all_logs_stablecoins(MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs'], w3.eth.chain_id) >= 0.8) is False 
+        assert (heuristic.are_all_logs_stablecoins(
+            MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs'], 
+            w3.eth.chain_id
+        ) >= 0.8) is False 
 
 
     def test_are_all_logs_transfers_positive(self):
-        assert heuristic.are_all_logs_transfers_or_approvals(MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs']) is True
+        assert heuristic.are_all_logs_transfers_or_approvals(
+            MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs']
+        ) is True
 
 
     def test_are_all_logs_transfers_negative(self):
-        assert heuristic.are_all_logs_transfers_or_approvals(MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs']) is False
+        assert heuristic.are_all_logs_transfers_or_approvals(
+            MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs']
+        ) is False
 
 
     def test_is_zero_value_tx_positive(self):
-        assert heuristic.is_zero_value_tx(MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs']) is True
+        assert heuristic.is_zero_value_tx(
+            MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs']
+        ) is True
 
 
     def test_is_zero_value_tx_negative(self):
-        assert heuristic.is_zero_value_tx(MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs']) is False
+        assert heuristic.is_zero_value_tx(
+            MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs']
+        ) is False
+
+
+    def test_are_tokens_using_known_symbols_positive(self):
+        assert heuristic.are_tokens_using_known_symbols(
+            w3, 
+            MOCK_TX_HASH_LOGS_MAPPING['0xpositive_fake_token']['logs'], 
+            w3.eth.chain_id
+        ) is True
+
+
+    def test_are_tokens_using_known_symbols_negative(self):
+        assert heuristic.are_tokens_using_known_symbols(
+            w3,
+            MOCK_TX_HASH_LOGS_MAPPING['0xnegative_fake_token']['logs'],
+            w3.eth.chain_id
+        ) is False

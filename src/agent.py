@@ -177,7 +177,7 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
         """
         Double check that this works...
         """
-        
+
         if ALERT_TYPE == "ADDRESS-POISONING-FAKE-TOKEN":
             contracts = set([log['address'] for log in logs])
         else:
@@ -230,7 +230,7 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
                 attackers.append(transaction_event.from_)
 
         # Fake token address poisoning heuristic ->
-        elif (log_length > 10
+        elif (log_length >= 10
         and heuristic.are_tokens_using_known_symbols(w3, logs, chain_id)):
             ALERT_TYPE = "ADDRESS-POISONING-FAKE-TOKEN"
             FAKE_TOKEN_ALERT_COUNT += 1

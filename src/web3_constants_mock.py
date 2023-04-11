@@ -111,5 +111,71 @@ MOCK_TX_HASH_LOGS_MAPPING = {
                 'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
             }
         ]
-    }
+    },
+    "0xpositive_fake_token": { "logs": [
+            {
+                'address': '0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000249f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xCf117403474eEaC230DaCcB3b54c0dABeB94Ae22',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000549f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000249f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xCf117403474eEaC230DaCcB3b54c0dABeB94Ae22',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000549f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000249f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xCf117403474eEaC230DaCcB3b54c0dABeB94Ae22',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000549f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000249f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xCf117403474eEaC230DaCcB3b54c0dABeB94Ae22',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000549f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000249f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xCf117403474eEaC230DaCcB3b54c0dABeB94Ae22',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000549f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            }
+        ]
+    },
+    "0xnegative_fake_token": { "logs": [
+            {
+                'address': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000249f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            },
+            {
+                'address': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                'data': '0x00000000000000000000000000000000000000000000000000000000000549f2',
+                'topics':[HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")]
+            }
+        ]
+    },
 }
