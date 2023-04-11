@@ -89,7 +89,6 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
         for log in log_args:
             from_tx_count = w3.eth.get_transaction_count(log['from'])
             to_tx_count = w3.eth.get_transaction_count(log['to'])
-            logging.info(f"From tx count: {from_tx_count}, From address: {log['from']}, to tx count: {to_tx_count}, to address: {log['to']}")
             if from_tx_count > to_tx_count:
                 attackers.append(log['to'])
                 victims.append(log['from'])
@@ -173,10 +172,9 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
         elif ALERT_TYPE == "ADDRESS-POISONING-LOW-VALUE":
             LOW_VALUE_ALERT_COUNT += 1
             score = (1.0 * LOW_VALUE_ALERT_COUNT) / DENOMINATOR_COUNT
-
-        """
-        Double check that this works...
-        """
+        elif ALERT_TYPE == "ADDRESS-POISONING-FAKE-TOKEN":
+            FAKE_TOKEN_ALERT_COUNT += 1
+            score = (1.0 * FAKE_TOKEN_ALERT_COUNT) / DENOMINATOR_COUNT
 
         if ALERT_TYPE == "ADDRESS-POISONING-FAKE-TOKEN":
             contracts = set([log['address'] for log in logs])
@@ -192,17 +190,18 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
 
     elif heuristic.is_contract(w3, transaction_event.to):
         DENOMINATOR_COUNT += 1
+        
         if chain_id == 137:
             logs = logs[:-1]
+        
         log_length = len(logs)
-
-        logging.info("Checking for new heuristic...")
+        
         # Zero value address poisoning heuristic ->
         if (log_length >= 3 
         and heuristic.are_all_logs_stablecoins(logs, chain_id) >= 0.6 
         and heuristic.are_all_logs_transfers_or_approvals(logs) 
         and heuristic.is_zero_value_tx(logs)): 
-            logging.info(f"Detected phishing transaction from addresses: {[transaction_event.from_, transaction_event.to]}")
+            logging.info(f"Detected phishing transaction from EOA: {transaction_event.from_}, and Contract: {transaction_event.to}")
             ALERT_TYPE = "ADDRESS-POISONING-ZERO-VALUE"
             ZERO_VALUE_ALERT_COUNT += 1
             score = (1.0 * ZERO_VALUE_ALERT_COUNT) / DENOMINATOR_COUNT
@@ -222,7 +221,7 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
             attackers, victims = get_attacker_victim_lists(w3, transfer_logs, PENDING_ALERT_TYPE)
             if ((len(attackers) - len(victims)) == 1
             and check_for_similar_transfer(blockexplorer, transfer_logs, victims)):
-                logging.info(f"Detected phishing transaction from EOA - {transaction_event.from_}, and Contract - {transaction_event.to}")
+                logging.info(f"Detected phishing transaction from EOA: {transaction_event.from_}, and Contract: {transaction_event.to}")
                 ALERT_TYPE = PENDING_ALERT_TYPE
                 LOW_VALUE_ALERT_COUNT += 1
                 score = (1.0 * LOW_VALUE_ALERT_COUNT) / DENOMINATOR_COUNT
@@ -231,7 +230,9 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
 
         # Fake token address poisoning heuristic ->
         elif (log_length >= 10
+        and heuristic.are_all_logs_transfers_or_approvals(logs)
         and heuristic.are_tokens_using_known_symbols(w3, logs, chain_id)):
+            logging.info(f"Detected phishing transaction from EOA: {transaction_event.from_}, and Contract: {transaction_event.to}")
             ALERT_TYPE = "ADDRESS-POISONING-FAKE-TOKEN"
             FAKE_TOKEN_ALERT_COUNT += 1
             score = (1.0 * FAKE_TOKEN_ALERT_COUNT) / DENOMINATOR_COUNT
@@ -247,6 +248,7 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
             AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims, ALERT_TYPE)
         )
 
+    logging.info(f"Alert counts: {ZERO_VALUE_ALERT_COUNT, LOW_VALUE_ALERT_COUNT, FAKE_TOKEN_ALERT_COUNT}")
     return findings
 
 

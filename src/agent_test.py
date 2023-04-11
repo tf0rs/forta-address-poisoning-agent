@@ -280,6 +280,37 @@ class TestAddressPoisoningAgent:
         tx_event.hash = "0xpositive_fake_token"
         tx_event.filter_log.return_value = [
             {
+                "address": "0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F",
+                "args": {
+                    "to": "attacker",
+                    "from": "victim",
+                    "value": "3000"
+                }
+            },
+            {
+                "address": "0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F",
+                "args": {
+                    "to": "attacker",
+                    "from": "victim",
+                    "value": "4000"
+                }
+            }
+        ]
+
+        findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
+        assert len(findings) == 1, "This should have triggered an alert - positive case"
+
+
+    def test_is_not_fake_token_address_poisoning(self):
+        agent.initialize()
+
+        tx_event = MagicMock(spec=TransactionEvent)
+        tx_event.transaction = {}
+        tx_event.to = VERIFIED_CONTRACT
+        tx_event.from_ = NEW_EOA
+        tx_event.hash = "0xnegative_fake_token"
+        tx_event.filter_log.return_value = [
+            {
                 "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
                 "args": {
                     "to": "attacker",
@@ -298,4 +329,4 @@ class TestAddressPoisoningAgent:
         ]
 
         findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
-        assert len(findings) == 1, "This should have triggered an alert - positive case"
+        assert len(findings) == 0, "This should not have triggered an alert - negative case"

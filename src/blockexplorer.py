@@ -1,4 +1,4 @@
-from src.keys import ETHERSCAN_API_KEY, POLYGON_API_KEY, BSC_API_KEY
+from src.keys import *
 import requests
 
 class BlockExplorer():
@@ -13,6 +13,18 @@ class BlockExplorer():
         elif chain_id == 56:
             self.host = "https://api.bscscan.com/api"
             self.api_key = BSC_API_KEY
+        elif chain_id == 42161:
+            self.host = "https://api.arbiscan.io"
+            self.api_key = ARBITRUM_API_KEY
+        elif chain_id == 10:
+            self.host = "https://api-optimistic.etherscan.io"
+            self.api_key = OPTIMISM_API_KEY
+        elif chain_id == 250:
+            self.host = "https://api.ftmscan.com"
+            self.api_key = FANTOM_API_KEY
+        elif chain_id == 43114:
+            self.host = "https://api.snowtrace.io"
+            self.api_key = AVALANCHE_API_KEY
 
 
     def make_token_history_query(self, address_info):

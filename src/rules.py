@@ -87,7 +87,6 @@ class AddressPoisoningRules:
     @staticmethod
     def are_tokens_using_known_symbols(w3, logs, chain_id):
         contracts = set([log['address'] for log in logs])
-        print(contracts)
         failed_calls = 0
 
         for address in contracts:
@@ -95,7 +94,6 @@ class AddressPoisoningRules:
                 return False
             else:
                 contract = w3.eth.contract(address=address, abi=SYMBOL_CALL_ABI)
-                print(contract.address)
                 try:
                     symbol = contract.functions.symbol().call()
                     if symbol in OFFICIAL_SYMBOLS[chain_id]:
