@@ -1,6 +1,6 @@
 from hexbytes import HexBytes
 from forta_agent import Web3
-from src.constants import STABLECOIN_CONTRACTS, SYMBOL_CALL_ABI, OFFICIAL_SYMBOLS
+from src.constants import *
 
 
 class AddressPoisoningRules:
@@ -90,10 +90,10 @@ class AddressPoisoningRules:
         failed_calls = 0
 
         for address in contracts:
-            if address in STABLECOIN_CONTRACTS[chain_id]:
+            if str.lower(address) in STABLECOIN_CONTRACTS[chain_id] or address in BASE_TOKENS:
                 return False
             else:
-                contract = w3.eth.contract(address=address, abi=SYMBOL_CALL_ABI)
+                contract = w3.eth.contract(address=Web3.toChecksumAddress(address), abi=SYMBOL_CALL_ABI)
                 try:
                     symbol = contract.functions.symbol().call()
                     if symbol in OFFICIAL_SYMBOLS[chain_id]:

@@ -14,16 +14,16 @@ class BlockExplorer():
             self.host = "https://api.bscscan.com/api"
             self.api_key = BSC_API_KEY
         elif chain_id == 42161:
-            self.host = "https://api.arbiscan.io"
+            self.host = "https://api.arbiscan.io/api"
             self.api_key = ARBITRUM_API_KEY
         elif chain_id == 10:
-            self.host = "https://api-optimistic.etherscan.io"
+            self.host = "https://api-optimistic.etherscan.io/api"
             self.api_key = OPTIMISM_API_KEY
         elif chain_id == 250:
-            self.host = "https://api.ftmscan.com"
+            self.host = "https://api.ftmscan.com/api"
             self.api_key = FANTOM_API_KEY
         elif chain_id == 43114:
-            self.host = "https://api.snowtrace.io"
+            self.host = "https://api.snowtrace.io/api"
             self.api_key = AVALANCHE_API_KEY
 
 
