@@ -4,10 +4,17 @@ from forta_agent import Finding, FindingSeverity, FindingType, EntityType
 class AddressPoisoningFinding:
 
     def create_finding(transaction_event, anomaly_score, log_length, attackers, victims, alert_type):
+
+        alert_description = {
+            "ADDRESS-POISONING-ZERO-VALUE": "zero value",
+            "ADDRESS-POISONING-LOW-VALUE": "low value",
+            "ADDRESS-POISONING-FAKE-TOKEN": "fake token"
+        }
+
         finding = Finding(
                     {
                         "name": "Possible Address Poisoning",
-                        "description": "Possible address poisoning transaction",
+                        "description": f"Possible {alert_description[alert_type]} address poisoning transaction triggered by eoa - {transaction_event.from_} calling contract - {transaction_event.to}",
                         "alert_id": alert_type,
                         "type": FindingType.Suspicious,
                         "severity": FindingSeverity.Medium,
@@ -23,13 +30,13 @@ class AddressPoisoningFinding:
                             {
                                 "entityType": EntityType.Address,
                                 "entity": transaction_event.from_,
-                                "label": "attacker",
+                                "label": "attacker-eoa",
                                 "confidence": 0.7
                             },
                             {
                                 "entityType": EntityType.Address,
                                 "entity": transaction_event.to,
-                                "label": "attacker",
+                                "label": "attacker-contract",
                                 "confidence": 0.7
                             },
                             {

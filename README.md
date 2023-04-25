@@ -9,6 +9,10 @@ This agent detects address poisoning, phishing transactions.
 - Ethereum
 - Binance Smart Chain
 - Polygon
+- Avalanche
+- Arbitrum
+- Optimism
+- Fantom
 
 ## Alerts
 
