@@ -23,7 +23,12 @@ class AddressPoisoningRules:
         check if sender and receiver have previously been identified as phishing addresses
         :return: have_addresses_been_detected: bool
         """
-        if transaction_event.to in zero_value_contracts:
+        # Hot fix to stop false positives...
+        blacklist = ["0x0000000000c2d145a2526bd8c716263bfebe1a72"]
+
+        if transaction_event.to in blacklist:
+            return ""
+        elif transaction_event.to in zero_value_contracts:
             return "ADDRESS-POISONING-ZERO-VALUE"
         elif transaction_event.to in low_value_contracts:
             return "ADDRESS-POISONING-LOW-VALUE"
