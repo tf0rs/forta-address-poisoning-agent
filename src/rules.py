@@ -24,7 +24,10 @@ class AddressPoisoningRules:
         :return: have_addresses_been_detected: bool
         """
         # Hot fix to stop false positives...
-        blacklist = ["0x0000000000c2d145a2526bd8c716263bfebe1a72"]
+        blacklist = [
+            "0x0000000000c2d145a2526bd8c716263bfebe1a72",
+            "0x86c80a8aa58e0a4fa09a69624c31ab2a6cad56b8"
+        ]
 
         if transaction_event.to in blacklist:
             return ""
