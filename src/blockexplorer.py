@@ -1,5 +1,7 @@
 from src.keys import *
 import requests
+import logging
+import json
 
 class BlockExplorer():
 
@@ -40,3 +42,17 @@ class BlockExplorer():
         values = [transfer['value'] for transfer in response.json()['result'] if transfer['from'] == str.lower(address_info[0])]
         
         return values[-5:]
+
+
+    def is_verified(self, address):
+        url = self.host + "?module=contract&action=getabi&address=" + address + "&apikey=" + self.api_key
+        response = requests.get(url)
+        if (response.status_code == 200):
+            data = json.loads(response.text)
+            if data['status'] == '1':
+                logging.info("Contract is verified...exiting")
+                return True
+        else:
+            logging.warn("Unable to check if contract is verified. Etherscan returned status code " + str(response.status_code))
+        logging.info("Contract is not verified")
+        return False

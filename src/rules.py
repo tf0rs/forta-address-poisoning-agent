@@ -1,6 +1,7 @@
 from hexbytes import HexBytes
 from forta_agent import Web3
 from src.constants import *
+import logging
 
 
 class AddressPoisoningRules:
@@ -23,15 +24,7 @@ class AddressPoisoningRules:
         check if sender and receiver have previously been identified as phishing addresses
         :return: have_addresses_been_detected: bool
         """
-        # Hot fix to stop false positives...
-        blacklist = [
-            "0x0000000000c2d145a2526bd8c716263bfebe1a72",
-            "0x86c80a8aa58e0a4fa09a69624c31ab2a6cad56b8"
-        ]
-
-        if transaction_event.to in blacklist:
-            return ""
-        elif transaction_event.to in zero_value_contracts:
+        if transaction_event.to in zero_value_contracts:
             return "ADDRESS-POISONING-ZERO-VALUE"
         elif transaction_event.to in low_value_contracts:
             return "ADDRESS-POISONING-LOW-VALUE"
@@ -101,9 +94,10 @@ class AddressPoisoningRules:
             if str.lower(address) in STABLECOIN_CONTRACTS[chain_id] or address in BASE_TOKENS:
                 return False
             else:
-                contract = w3.eth.contract(address=Web3.toChecksumAddress(address), abi=SYMBOL_CALL_ABI)
                 try:
+                    contract = w3.eth.contract(address=Web3.toChecksumAddress(address), abi=SYMBOL_CALL_ABI)
                     symbol = contract.functions.symbol().call()
+                    logging.info(symbol)
                     if symbol in OFFICIAL_SYMBOLS[chain_id]:
                         continue
                     else:
