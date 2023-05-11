@@ -1,6 +1,6 @@
 {
   "name": "address-poisoning-detector",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Agent detecting address poisoning - zero value, low value, and fake token phishing transfers",
   "repository": "https://github.com/tf0rs/forta-address-poisoning-agent",
   "chainIds": [
@@ -8,19 +8,19 @@
   ],
   "chainSettings": {
     "1": {
-      "shards": 8,
-      "target": 3
-    },
-    "137": {
       "shards": 10,
       "target": 3
     },
+    "137": {
+      "shards": 15,
+      "target": 3
+    },
     "56": {
-      "shards": 8,
+      "shards": 10,
       "target": 3
     },
     "default": {
-      "shards": 4,
+      "shards": 6,
       "target": 3
     }
   },
