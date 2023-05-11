@@ -11,3 +11,7 @@ class BlockExplorerMock():
             return [0, 10000, 5000, 0, 823400]
         else:
             return [0, 0, 0, 0, 0]
+
+
+    def is_verified(self, address):
+        return False
