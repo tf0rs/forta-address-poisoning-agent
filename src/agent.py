@@ -59,11 +59,6 @@ def initialize():
     fake_value_phishing_contracts = set()
 
 
-"""
-Needs to be edited to allow for parsing logs when the contract is not a stablecoin...
-Might want to separate this out. It probably shouldn't have been part of this function in
-the first place...
-"""
 def parse_logs_for_transfer_and_approval_info(transaction_event, contracts):
     transfer_logs = []
 
