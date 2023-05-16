@@ -59,6 +59,15 @@ class TestAddressPoisoningAgent:
             }
         })
 
+        # Chain: Blocktime, Number of Tx -> Avg processing time in ms target
+        # Ethereum: 12s, 150 -> 80ms
+        # BSC: 3s, 70 -> 43ms
+        # Polygon: 2s, 50 -> 40ms
+        # Avalanche: 2s, 5 -> 400ms
+        # Arbitrum: 1s, 5 -> 200ms
+        # Optimism: 24s, 150 -> 160ms
+        # Fantom: 1s, 5 -> 200ms
+
         processing_runs = 10
 
         processing_time_to_eoa = timeit.timeit('agent.detect_address_poisoning(real_w3, real_blockexplorer, heuristic, transaction_to_eoa)', number=processing_runs, globals=globals()) * 1000 / processing_runs
@@ -66,7 +75,7 @@ class TestAddressPoisoningAgent:
         processing_time_to_verified_contract = timeit.timeit('agent.detect_address_poisoning(real_w3, real_blockexplorer, heuristic, transaction_to_verified_contract)', number=processing_runs, globals=globals()) * 1000 / processing_runs
         processing_time_fake_token = timeit.timeit('agent.detect_address_poisoning(real_w3, real_blockexplorer, heuristic, fake_token_phishing_tx)', number=processing_runs, globals=globals()) * 1000 / processing_runs
 
-        assert (processing_time_to_eoa * 0.33 + processing_time_to_contract * 0.33 + processing_time_to_verified_contract * 0.33 + processing_time_fake_token * 0.01)/10 < 125, f"Time is {(processing_time_to_eoa * 0.33 + processing_time_to_contract * 0.33 + processing_time_to_verified_contract * 0.33 + processing_time_fake_token * 0.01)/10}, normal: {processing_time_to_eoa} - {processing_time_to_contract} - {processing_time_to_verified_contract} - {processing_time_fake_token}"
+        assert (processing_time_to_eoa * 0.33 + processing_time_to_contract * 0.33 + processing_time_to_verified_contract * 0.33 + processing_time_fake_token * 0.01)/8 < 160, f"Time is {(processing_time_to_eoa * 0.33 + processing_time_to_contract * 0.33 + processing_time_to_verified_contract * 0.33 + processing_time_fake_token * 0.01)/8}, normal: {processing_time_to_eoa} - {processing_time_to_contract} - {processing_time_to_verified_contract} - {processing_time_fake_token}"
 
 
     def test_transfer_to_eoa(self):
