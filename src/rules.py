@@ -110,3 +110,17 @@ class AddressPoisoningRules:
             return False
 
         return True
+
+
+    @staticmethod
+    def are_tokens_minted(logs):
+        null_hash = HexBytes('0x0000000000000000000000000000000000000000000000000000000000000000')
+
+        for log in logs:
+            if null_hash in log["topics"]:
+                logging.info("Detected null address in logs...")
+                return True
+            else:
+                continue
+        
+        return False

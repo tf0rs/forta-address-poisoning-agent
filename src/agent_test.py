@@ -39,8 +39,8 @@ class TestAddressPoisoningAgent:
             }
         })
 
-        global transaction_to_verified_contract
-        transaction_to_verified_contract = create_transaction_event({
+        global transaction_to_CONTRACT
+        transaction_to_CONTRACT = create_transaction_event({
             'transaction': {
                 'hash': "0x0af2f2d106bff1950805d610e927344a2477b8be138ab4d4269e72b9aab5ddec",
                 'from': "0x2a038e100f8b85df21e4d44121bdbfe0c288a869",
@@ -72,10 +72,10 @@ class TestAddressPoisoningAgent:
 
         processing_time_to_eoa = timeit.timeit('agent.detect_address_poisoning(real_w3, real_blockexplorer, heuristic, transaction_to_eoa)', number=processing_runs, globals=globals()) * 1000 / processing_runs
         processing_time_to_contract = timeit.timeit('agent.detect_address_poisoning(real_w3, real_blockexplorer, heuristic, transaction_to_contract)', number=processing_runs, globals=globals()) * 1000 / processing_runs
-        processing_time_to_verified_contract = timeit.timeit('agent.detect_address_poisoning(real_w3, real_blockexplorer, heuristic, transaction_to_verified_contract)', number=processing_runs, globals=globals()) * 1000 / processing_runs
+        processing_time_to_CONTRACT = timeit.timeit('agent.detect_address_poisoning(real_w3, real_blockexplorer, heuristic, transaction_to_CONTRACT)', number=processing_runs, globals=globals()) * 1000 / processing_runs
         processing_time_fake_token = timeit.timeit('agent.detect_address_poisoning(real_w3, real_blockexplorer, heuristic, fake_token_phishing_tx)', number=processing_runs, globals=globals()) * 1000 / processing_runs
 
-        assert (processing_time_to_eoa * 0.33 + processing_time_to_contract * 0.33 + processing_time_to_verified_contract * 0.33 + processing_time_fake_token * 0.01)/8 < 160, f"Time is {(processing_time_to_eoa * 0.33 + processing_time_to_contract * 0.33 + processing_time_to_verified_contract * 0.33 + processing_time_fake_token * 0.01)/8}, normal: {processing_time_to_eoa} - {processing_time_to_contract} - {processing_time_to_verified_contract} - {processing_time_fake_token}"
+        assert (processing_time_to_eoa * 0.33 + processing_time_to_contract * 0.33 + processing_time_to_CONTRACT * 0.33 + processing_time_fake_token * 0.01)/8 < 160, f"Time is {(processing_time_to_eoa * 0.33 + processing_time_to_contract * 0.33 + processing_time_to_CONTRACT * 0.33 + processing_time_fake_token * 0.01)/8}, normal: {processing_time_to_eoa} - {processing_time_to_contract} - {processing_time_to_CONTRACT} - {processing_time_fake_token}"
 
 
     def test_transfer_to_eoa(self):
@@ -209,7 +209,7 @@ class TestAddressPoisoningAgent:
 
         tx_event = MagicMock(spec=TransactionEvent)
         tx_event.transaction = {}
-        tx_event.to = VERIFIED_CONTRACT
+        tx_event.to = CONTRACT
         tx_event.from_ = NEW_EOA
         tx_event.hash = "0xpositive_zero"
         tx_event.filter_log.return_value = [
@@ -241,7 +241,7 @@ class TestAddressPoisoningAgent:
 
         tx_event = MagicMock(spec=TransactionEvent)
         tx_event.transaction = {}
-        tx_event.to = VERIFIED_CONTRACT
+        tx_event.to = CONTRACT
         tx_event.from_ = NEW_EOA
         tx_event.hash = "0xnegative_zero"
         tx_event.filter_log.return_value = [
@@ -272,7 +272,7 @@ class TestAddressPoisoningAgent:
 
         tx_event = MagicMock(spec=TransactionEvent)
         tx_event.transaction = {}
-        tx_event.to = VERIFIED_CONTRACT
+        tx_event.to = CONTRACT
         tx_event.from_ = NEW_EOA
         tx_event.hash = "0xpositive_low"
         tx_event.filter_log.return_value = [
@@ -304,7 +304,7 @@ class TestAddressPoisoningAgent:
 
         tx_event = MagicMock(spec=TransactionEvent)
         tx_event.transaction = {}
-        tx_event.to = VERIFIED_CONTRACT
+        tx_event.to = CONTRACT
         tx_event.from_ = NEW_EOA
         tx_event.hash = "0xnegative_low"
         tx_event.filter_log.return_value = [
@@ -335,7 +335,7 @@ class TestAddressPoisoningAgent:
 
         tx_event = MagicMock(spec=TransactionEvent)
         tx_event.transaction = {}
-        tx_event.to = VERIFIED_CONTRACT
+        tx_event.to = CONTRACT
         tx_event.from_ = NEW_EOA
         tx_event.hash = "0xpositive_fake_token"
         tx_event.filter_log.return_value = [
@@ -366,7 +366,7 @@ class TestAddressPoisoningAgent:
 
         tx_event = MagicMock(spec=TransactionEvent)
         tx_event.transaction = {}
-        tx_event.to = VERIFIED_CONTRACT
+        tx_event.to = CONTRACT
         tx_event.from_ = NEW_EOA
         tx_event.hash = "0xnegative_fake_token"
         tx_event.filter_log.return_value = [
@@ -390,3 +390,16 @@ class TestAddressPoisoningAgent:
 
         findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
         assert len(findings) == 0, "This should not have triggered an alert - negative case"
+
+
+    def test_is_null_address_in_logs(self):
+        agent.initialize()
+
+        tx_event = MagicMock(spec=TransactionEvent)
+        tx_event.transaction = {}
+        tx_event.to = CONTRACT
+        tx_event.from_ = NEW_EOA
+        tx_event.hash = "0x_token_mint"
+
+        findings = agent.detect_address_poisoning(w3, blockexplorer, heuristic, tx_event)
+        assert len(findings) == 0, "This is a minting transaction, so should not have triggered."

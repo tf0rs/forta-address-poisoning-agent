@@ -11,7 +11,7 @@ heuristic = AddressPoisoningRules()
 class TestAddressPoisoningRules:
 
     def test_is_contract_contract(self):
-        assert heuristic.is_contract(w3, VERIFIED_CONTRACT) 
+        assert heuristic.is_contract(w3, CONTRACT) 
 
 
     def test_is_contract_eoa(self):
@@ -26,7 +26,7 @@ class TestAddressPoisoningRules:
         positive_case = create_transaction_event({
             'transaction': {
                 'to': NEW_EOA,
-                'from': VERIFIED_CONTRACT
+                'from': CONTRACT
             }
         })
         assert heuristic.have_addresses_been_detected(
@@ -35,14 +35,14 @@ class TestAddressPoisoningRules:
 
 
     def test_have_addresses_been_detected_negative(self):
-        zero_value_contracts = set([NEW_EOA, VERIFIED_CONTRACT])
+        zero_value_contracts = set([NEW_EOA, CONTRACT])
         low_value_contracts = set([])
         fake_token_contracts = set([])
 
         negative_case = create_transaction_event({
             'transaction': {
                 'to': OLD_EOA,
-                'from': VERIFIED_CONTRACT
+                'from': CONTRACT
             }
         })
         assert heuristic.have_addresses_been_detected(
@@ -100,4 +100,16 @@ class TestAddressPoisoningRules:
             w3,
             MOCK_TX_HASH_LOGS_MAPPING['0xnegative_fake_token']['logs'],
             w3.eth.chain_id
+        ) is False
+
+
+    def test_are_tokens_minted_positive(self):
+        assert heuristic.are_tokens_minted(
+            MOCK_TX_HASH_LOGS_MAPPING['0x_token_mint']['logs']
+        ) is True
+
+
+    def test_are_tokens_minted(self):
+        assert heuristic.are_tokens_minted(
+            MOCK_TX_HASH_LOGS_MAPPING['0xnegative_fake_token']['logs']
         ) is False

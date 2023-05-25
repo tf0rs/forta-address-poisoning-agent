@@ -2,7 +2,7 @@ from hexbytes import HexBytes
 
 NEW_EOA = '0x49A9deCA3DcA86aB3A029C2ed629EC8477009Fee'
 OLD_EOA = '0x4e5b2E1Dc63f6B91cb6cD759936495434c7E0000'
-VERIFIED_CONTRACT = '0x2320A28f52334d62622cc2EaFa15DE55F9987eD0'
+CONTRACT = '0x2320A28f52334d62622cc2EaFa15DE55F9987eD0'
 
 MOCK_TX_HASH_LOGS_MAPPING = {
     "0xpositive_zero": {'logs': [
@@ -178,4 +178,17 @@ MOCK_TX_HASH_LOGS_MAPPING = {
             }
         ]
     },
+    "0x_token_mint": {  "logs": [
+            {
+                'address': '0x4f06229a42e344b361D8dc9cA58D73e2597a9f1F',
+                'data': "0x",
+                'topics': [
+                    HexBytes('0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'),
+                    HexBytes('0x0000000000000000000000000000000000000000000000000000000000000000'),
+                    HexBytes('0x000000000000000000000000302f442c5aa90177684b551883fc32b151178e7b'),
+                    HexBytes('0x0000000000000000000000000000000000000000000000000000000000000006')
+                ]
+            }
+        ]
+    }
 }
