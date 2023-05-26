@@ -97,7 +97,6 @@ class AddressPoisoningRules:
                 try:
                     contract = w3.eth.contract(address=Web3.toChecksumAddress(address), abi=SYMBOL_CALL_ABI)
                     symbol = contract.functions.symbol().call()
-                    logging.info(symbol)
                     if symbol in OFFICIAL_SYMBOLS[chain_id]:
                         continue
                     else:
@@ -106,7 +105,7 @@ class AddressPoisoningRules:
                     failed_calls += 1
                     continue
 
-        if failed_calls > (len(logs) / 2):
+        if failed_calls == len(contracts):
             return False
 
         return True
