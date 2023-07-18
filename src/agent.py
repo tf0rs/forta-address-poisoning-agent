@@ -184,7 +184,7 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
         return findings
 
     elif (heuristic.is_contract(w3, transaction_event.to) 
-    and not blockexplorer.is_verified(transaction_event.to)
+    # and not blockexplorer.is_verified(transaction_event.to)
     and not heuristic.are_tokens_minted(logs)):
         denominator_count += 1
         

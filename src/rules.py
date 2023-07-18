@@ -50,17 +50,19 @@ class AddressPoisoningRules:
 
     @staticmethod    
     def are_all_logs_transfers_or_approvals(logs):
-        accepted_hashes = [
-            HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"),
-            HexBytes("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925")
-        ]
-        
-        for log in logs:
-            if log['topics'][0] not in accepted_hashes:
-                return False
-            else:
-                continue
-        return True
+        approval_hash = HexBytes("0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925")
+        transfer_hash = HexBytes("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef")
+
+        approval_logs = [log for log in logs if log['topics'][0] == approval_hash]
+        transfer_logs = [log for log in logs if log['topics'][0] == transfer_hash]
+
+        if (
+            len(approval_logs) + len(transfer_logs) == len(logs)
+            and len(transfer_logs) > 0
+        ):
+            return True
+        else:
+            return False
 
     
     @staticmethod
@@ -88,15 +90,18 @@ class AddressPoisoningRules:
     @staticmethod
     def are_tokens_using_known_symbols(w3, logs, chain_id):
         contracts = set([log['address'] for log in logs])
+        logging.info(f"Contracts: {contracts}")
         failed_calls = 0
 
         for address in contracts:
             if str.lower(address) in STABLECOIN_CONTRACTS[chain_id] or address in BASE_TOKENS:
+
                 return False
             else:
                 try:
                     contract = w3.eth.contract(address=Web3.toChecksumAddress(address), abi=SYMBOL_CALL_ABI)
                     symbol = contract.functions.symbol().call()
+                    logging.info(f"Symbol: {symbol}")
                     if symbol in OFFICIAL_SYMBOLS[chain_id]:
                         continue
                     else:
