@@ -82,3 +82,16 @@ OFFICIAL_SYMBOLS = {
     250: ['TUSD', 'USDC', 'DAI', 'FETH'],
     43114: ['USDT.e', 'USDt', 'USDC', 'USDC.e', 'BUSD.e', 'BUSD', 'DAI.e', 'AVAX']
 }
+
+CHAIN_ORDINAL_SYMBOL_MAP = {
+    1: [
+        [85, 83, 68, 84], # USDT
+        [85, 83, 68, 1058], # USDТ -> Cyrillic T
+        [85, 83, 68, 67], # USDC
+        [85, 83, 68, 1057], # USDС -> Cyrillic C
+        [69, 84, 72], # ETH
+        [1045, 84, 72], # ЕTH -> Cyrillic E
+        [68, 65, 73], # DAI
+        [68, 1040, 73] # DАI -> Cyrillic A
+    ]
+}

@@ -208,7 +208,7 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
             attackers.extend([transaction_event.from_, transaction_event.to])
 
         # Fake token address poisoning heuristic ->
-        elif (log_length >= 10
+        elif (log_length >= 5
         and heuristic.are_all_logs_transfers_or_approvals(logs)
         and heuristic.are_tokens_using_known_symbols(w3, logs, chain_id)):
             logging.info(f"Detected phishing transaction from EOA: {transaction_event.from_}, and Contract: {transaction_event.to}")

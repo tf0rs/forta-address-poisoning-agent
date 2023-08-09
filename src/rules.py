@@ -95,17 +95,22 @@ class AddressPoisoningRules:
 
         for address in contracts:
             if str.lower(address) in STABLECOIN_CONTRACTS[chain_id] or address in BASE_TOKENS:
-
                 return False
             else:
                 try:
                     contract = w3.eth.contract(address=Web3.toChecksumAddress(address), abi=SYMBOL_CALL_ABI)
                     symbol = contract.functions.symbol().call()
-                    logging.info(f"Symbol: {symbol}")
-                    if symbol in OFFICIAL_SYMBOLS[chain_id]:
-                        continue
+                    if chain_id == 1:
+                        ord_symbol = [ord(char) for char in symbol]
+                        if ord_symbol in CHAIN_ORDINAL_SYMBOL_MAP[1]:
+                            continue
+                        else:
+                            return False
                     else:
-                        return False
+                        if symbol in OFFICIAL_SYMBOLS[chain_id]:
+                            continue
+                        else:
+                            return False
                 except Exception:
                     failed_calls += 1
                     continue
