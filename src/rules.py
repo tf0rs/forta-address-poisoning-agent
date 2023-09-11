@@ -70,10 +70,10 @@ class AddressPoisoningRules:
 
         for log in logs:
             if (str.lower(log['address']) in STABLECOIN_CONTRACTS[chain_id]
-                and log['data'] != "0x0000000000000000000000000000000000000000000000000000000000000000"):
-                return False
-            else:
+                and log['data'] == "0x0000000000000000000000000000000000000000000000000000000000000000"):
                 continue
+            else:
+                return False
         return True
 
     

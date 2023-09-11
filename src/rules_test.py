@@ -77,13 +77,15 @@ class TestAddressPoisoningRules:
 
     def test_is_zero_value_tx_positive(self):
         assert heuristic.is_zero_value_tx(
-            MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs']
+            MOCK_TX_HASH_LOGS_MAPPING['0xpositive_zero']['logs'],
+            w3.eth.chain_id
         ) is True
 
 
     def test_is_zero_value_tx_negative(self):
         assert heuristic.is_zero_value_tx(
-            MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs']
+            MOCK_TX_HASH_LOGS_MAPPING['0xnegative_zero']['logs'],
+            w3.eth.chain_id
         ) is False
 
 
