@@ -66,10 +66,11 @@ class AddressPoisoningRules:
 
     
     @staticmethod
-    def is_zero_value_tx(logs):
+    def is_zero_value_tx(logs, chain_id):
 
         for log in logs:
-            if log['data'] != "0x0000000000000000000000000000000000000000000000000000000000000000":
+            if (str.lower(log['address']) in STABLECOIN_CONTRACTS[chain_id]
+                and log['data'] != "0x0000000000000000000000000000000000000000000000000000000000000000"):
                 return False
             else:
                 continue
@@ -90,12 +91,12 @@ class AddressPoisoningRules:
     @staticmethod
     def are_tokens_using_known_symbols(w3, logs, chain_id):
         contracts = set([log['address'] for log in logs])
-        logging.info(f"Contracts: {contracts}")
         failed_calls = 0
+        valid_contracts = 0
 
         for address in contracts:
             if str.lower(address) in STABLECOIN_CONTRACTS[chain_id] or address in BASE_TOKENS:
-                return False
+                valid_contracts += 1
             else:
                 try:
                     contract = w3.eth.contract(address=Web3.toChecksumAddress(address), abi=SYMBOL_CALL_ABI)
@@ -115,7 +116,8 @@ class AddressPoisoningRules:
                     failed_calls += 1
                     continue
 
-        if failed_calls == len(contracts):
+        if (failed_calls == len(contracts) 
+        or valid_contracts == len(contracts)):
             return False
 
         return True

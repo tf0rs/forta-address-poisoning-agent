@@ -195,9 +195,9 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
         
         # Zero value address poisoning heuristic ->
         if (log_length >= 3 
-        and heuristic.are_all_logs_stablecoins(logs, chain_id) >= 0.6 
+        and heuristic.are_all_logs_stablecoins(logs, chain_id) >= 0.4 
         and heuristic.are_all_logs_transfers_or_approvals(logs) 
-        and heuristic.is_zero_value_tx(logs)): 
+        and heuristic.is_zero_value_tx(logs, chain_id)): 
             logging.info(f"Detected phishing transaction from EOA: {transaction_event.from_}, and Contract: {transaction_event.to}")
             ALERT_TYPE = "ADDRESS-POISONING-ZERO-VALUE"
             zero_value_alert_count += 1
