@@ -91,7 +91,6 @@ class AddressPoisoningRules:
     @staticmethod
     def are_tokens_using_known_symbols(w3, logs, chain_id):
         contracts = set([log['address'] for log in logs])
-        failed_calls = 0
         valid_contracts = 0
 
         for address in contracts:
@@ -106,18 +105,21 @@ class AddressPoisoningRules:
                         if ord_symbol in CHAIN_ORDINAL_SYMBOL_MAP[1]:
                             continue
                         else:
+                            logging.info("Exiting because failed to match ordinal")
                             return False
                     else:
                         if symbol in OFFICIAL_SYMBOLS[chain_id]:
                             continue
                         else:
+                            logging.info("Exiting because failed to match symbol")
                             return False
-                except Exception:
-                    failed_calls += 1
-                    continue
+                except Exception as e:
+                    logging.warn(f"Failed to retrieve symbol info for {address} with exception {e}")
+                    return False
 
-        if (failed_calls == len(contracts) 
-        or valid_contracts == len(contracts)):
+
+        if valid_contracts == len(contracts):
+            logging.info("Exiting because all contracts are valid")
             return False
 
         return True
