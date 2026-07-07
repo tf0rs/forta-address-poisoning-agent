@@ -115,3 +115,66 @@ class TestAddressPoisoningRules:
         assert heuristic.are_tokens_minted(
             MOCK_TX_HASH_LOGS_MAPPING['0xnegative_fake_token']['logs']
         ) is False
+
+
+    def test_is_contract_none_address(self):
+        assert heuristic.is_contract(w3, None) is True
+
+
+    def test_have_addresses_been_detected_low_value(self):
+        low_value_case = create_transaction_event({
+            'transaction': {
+                'to': CONTRACT,
+                'from': NEW_EOA
+            }
+        })
+        assert heuristic.have_addresses_been_detected(
+            low_value_case, set([]), set([CONTRACT]), set([])
+        ) == "ADDRESS-POISONING-LOW-VALUE"
+
+
+    def test_have_addresses_been_detected_fake_token(self):
+        fake_token_case = create_transaction_event({
+            'transaction': {
+                'to': CONTRACT,
+                'from': NEW_EOA
+            }
+        })
+        assert heuristic.have_addresses_been_detected(
+            fake_token_case, set([]), set([]), set([CONTRACT])
+        ) == "ADDRESS-POISONING-FAKE-TOKEN"
+
+
+    def test_are_all_logs_stablecoins_empty_logs(self):
+        assert heuristic.are_all_logs_stablecoins([], w3.eth.chain_id) == 0
+
+
+    def test_is_data_field_repeated_positive(self):
+        repeated_value = "0x000000000000000000000000000000000000000000000000000000000000d431"
+        logs = [
+            {"data": repeated_value},
+            {"data": repeated_value},
+            {"data": repeated_value},
+            {"data": "0x000000000000000000000000000000000000000000000000000000000000d432"},
+        ]
+        assert heuristic.is_data_field_repeated(logs) is True
+
+
+    def test_is_data_field_repeated_negative_all_unique(self):
+        logs = [
+            {"data": "0x0000000000000000000000000000000000000000000000000000000000000001"},
+            {"data": "0x0000000000000000000000000000000000000000000000000000000000000002"},
+            {"data": "0x0000000000000000000000000000000000000000000000000000000000000003"},
+            {"data": "0x0000000000000000000000000000000000000000000000000000000000000004"},
+        ]
+        assert heuristic.is_data_field_repeated(logs) is False
+
+
+    def test_is_data_field_repeated_negative_zero_value(self):
+        repeated_value = "0x000000000000000000000000000000000000000000000000000000000000d431"
+        logs = [
+            {"data": repeated_value},
+            {"data": repeated_value},
+            {"data": "0x0000000000000000000000000000000000000000000000000000000000000000"},
+        ]
+        assert heuristic.is_data_field_repeated(logs) is False
