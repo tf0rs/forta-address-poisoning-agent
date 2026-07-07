@@ -3,6 +3,9 @@ import requests
 import logging
 import json
 
+# Bound outbound block explorer calls so a slow/unresponsive API cannot hang the agent.
+REQUEST_TIMEOUT_SECONDS = 15
+
 class BlockExplorer():
 
     def __init__(self, chain_id):
@@ -38,15 +41,20 @@ class BlockExplorer():
             "apikey": self.api_key
         }
 
-        response = requests.get(self.host, params=params)
+        response = requests.get(self.host, params=params, timeout=REQUEST_TIMEOUT_SECONDS)
         values = [transfer['value'] for transfer in response.json()['result'] if transfer['from'] == str.lower(address_info[0])]
         
         return values[-5:]
 
 
     def is_verified(self, address):
-        url = self.host + "?module=contract&action=getabi&address=" + address + "&apikey=" + self.api_key
-        response = requests.get(url)
+        params = {
+            "module": "contract",
+            "action": "getabi",
+            "address": address,
+            "apikey": self.api_key
+        }
+        response = requests.get(self.host, params=params, timeout=REQUEST_TIMEOUT_SECONDS)
         if (response.status_code == 200):
             data = json.loads(response.text)
             if data['status'] == '1':
