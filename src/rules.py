@@ -1,6 +1,7 @@
 from hexbytes import HexBytes
 from forta_agent import Web3
 from src.constants import *
+from src.utils import get_unique_log_contracts
 import logging
 
 
@@ -94,7 +95,7 @@ class AddressPoisoningRules:
 
     @staticmethod
     def are_tokens_using_known_symbols(w3, logs, chain_id):
-        contracts = set([log['address'] for log in logs])
+        contracts = get_unique_log_contracts(logs)
         valid_contracts = 0
 
         for address in contracts:
