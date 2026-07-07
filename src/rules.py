@@ -14,7 +14,11 @@ class AddressPoisoningRules:
         """
         if address is None:
             return True
-        code = w3.eth.get_code(Web3.toChecksumAddress(address))
+        try:
+            code = w3.eth.get_code(Web3.toChecksumAddress(address))
+        except Exception as e:
+            logging.warning(f"Failed to check if {address} is a contract: {e}")
+            return False
         return code != HexBytes('0x')
 
 
@@ -114,7 +118,7 @@ class AddressPoisoningRules:
                             logging.info("Exiting because failed to match symbol")
                             return False
                 except Exception as e:
-                    logging.warn(f"Failed to retrieve symbol info for {address} with exception {e}")
+                    logging.warning(f"Failed to retrieve symbol info for {address}: {e}; skipping fake token check")
                     return False
 
 

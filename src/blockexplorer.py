@@ -9,6 +9,9 @@ REQUEST_TIMEOUT_SECONDS = 15
 class BlockExplorer():
 
     def __init__(self, chain_id):
+        self.host = None
+        self.api_key = None
+
         if chain_id == 1:
             self.host = "https://api.etherscan.io/api"
             self.api_key = ETHERSCAN_API_KEY
@@ -30,9 +33,14 @@ class BlockExplorer():
         elif chain_id == 43114:
             self.host = "https://api.snowtrace.io/api"
             self.api_key = AVALANCHE_API_KEY
+        else:
+            logging.warning(f"Unsupported chain_id {chain_id} for block explorer; API queries will be unavailable")
 
 
     def make_token_history_query(self, address_info):
+        if self.host is None or self.api_key is None:
+            raise RuntimeError("Block explorer not configured for this chain")
+
         params = {
             "module": "account",
             "action": "tokentx",
@@ -42,25 +50,40 @@ class BlockExplorer():
         }
 
         response = requests.get(self.host, params=params, timeout=REQUEST_TIMEOUT_SECONDS)
-        values = [transfer['value'] for transfer in response.json()['result'] if transfer['from'] == str.lower(address_info[0])]
+        response.raise_for_status()
+
+        data = response.json()
+        if 'result' not in data or not isinstance(data['result'], list):
+            raise ValueError(f"Unexpected block explorer response: status={data.get('status')}, message={data.get('message')}")
+
+        values = [transfer['value'] for transfer in data['result'] if transfer['from'] == str.lower(address_info[0])]
         
         return values[-5:]
 
 
     def is_verified(self, address):
+        if self.host is None or self.api_key is None:
+            logging.warning("Block explorer not configured; cannot verify contract")
+            return False
+
         params = {
             "module": "contract",
             "action": "getabi",
             "address": address,
             "apikey": self.api_key
         }
-        response = requests.get(self.host, params=params, timeout=REQUEST_TIMEOUT_SECONDS)
+        try:
+            response = requests.get(self.host, params=params, timeout=REQUEST_TIMEOUT_SECONDS)
+        except requests.RequestException as e:
+            logging.warning(f"Failed to check if contract is verified: {e}")
+            return False
+
         if (response.status_code == 200):
             data = json.loads(response.text)
             if data['status'] == '1':
                 logging.info("Contract is verified...exiting")
                 return True
         else:
-            logging.warn("Unable to check if contract is verified. Etherscan returned status code " + str(response.status_code))
+            logging.warning("Unable to check if contract is verified. Etherscan returned status code " + str(response.status_code))
         logging.info("Contract is not verified")
         return False
