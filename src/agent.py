@@ -82,8 +82,14 @@ def get_attacker_victim_lists(w3, decoded_logs, alert_type):
     if (alert_type == "ADDRESS-POISONING-ZERO-VALUE" 
     or alert_type == "ADDRESS-POISONING-FAKE-TOKEN"):
         for log in log_args:
-            from_tx_count = w3.eth.get_transaction_count(log['from'])
-            to_tx_count = w3.eth.get_transaction_count(log['to'])
+            try:
+                from_tx_count = w3.eth.get_transaction_count(log['from'])
+                to_tx_count = w3.eth.get_transaction_count(log['to'])
+            except Exception as e:
+                logging.warning(f"Failed to get transaction count for {log['from']} or {log['to']}: {e}")
+                attackers.append(log['from'])
+                victims.append(log['to'])
+                continue
             if from_tx_count > to_tx_count:
                 attackers.append(log['to'])
                 victims.append(log['from'])
@@ -110,7 +116,7 @@ def check_for_similar_transfer(blockexplorer, decoded_logs, victims):
         try:
             transfer_history = blockexplorer.make_token_history_query(entry)
         except Exception as e:
-            logging.info(f"Failed to retrieve transaction history from blockexplorer: {e}")
+            logging.warning(f"Failed to retrieve transaction history from blockexplorer: {e}")
             transfer_history = None
 
         return (transfer_history is None, str(entry[2])[:3] not in str(transfer_history) if transfer_history is not None else False)
@@ -150,7 +156,12 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
 
     findings = []
     chain_id = w3.eth.chain_id
-    logs = w3.eth.get_transaction_receipt(transaction_event.hash)['logs']
+
+    try:
+        logs = w3.eth.get_transaction_receipt(transaction_event.hash)['logs']
+    except Exception as e:
+        logging.error(f"Failed to get transaction receipt for {transaction_event.hash}: {e}")
+        return findings
 
     # Return alert type if previously detected, but if not return empty string
     ALERT_TYPE = heuristic.have_addresses_been_detected(
@@ -241,9 +252,12 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
 
     if ALERT_TYPE != "":
         logging.info("Appending finding...")
-        findings.append(
-            AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims, ALERT_TYPE)
-        )
+        try:
+            findings.append(
+                AddressPoisoningFinding.create_finding(transaction_event, score, log_length, attackers, victims, ALERT_TYPE)
+            )
+        except Exception as e:
+            logging.error(f"Failed to create finding for {transaction_event.hash}: {e}")
 
     logging.info(f"Alert counts: {zero_value_alert_count, low_value_alert_count, fake_token_alert_count}")
     return findings
@@ -251,7 +265,11 @@ def detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event):
 
 def provide_handle_transaction(w3, blockexplorer, heuristic):
     def handle_transaction(transaction_event):
-        return detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event)
+        try:
+            return detect_address_poisoning(w3, blockexplorer, heuristic, transaction_event)
+        except Exception as e:
+            logging.error(f"Unhandled error processing transaction {transaction_event.hash}: {e}")
+            return []
 
     return handle_transaction
 
